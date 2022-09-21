@@ -5,6 +5,8 @@ plugins {
     id("org.jetbrains.kotlin.jvm") version "1.6.21"
 }
 
+group = "com.wttech.gradle.config"
+
 repositories {
     mavenCentral()
 }
@@ -13,7 +15,7 @@ dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.yaml:snakeyaml:1.32")
-
+    implementation("com.miglayout:miglayout:3.7.4")
 }
 
 testing {

@@ -4,7 +4,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.yaml.snakeyaml.Yaml
 
-class Config : DefaultTask() {
+open class Config : DefaultTask() {
 
     val config by lazy { project.extensions.getByType(ConfigExtension::class.java) }
 
@@ -42,10 +42,8 @@ class Config : DefaultTask() {
     }
 
     init {
-        project.afterEvaluate {
-            if (outputLoaded.get()) {
-                loadOutputFile()
-            }
+        if (outputLoaded.get()) { // TODO determine when to load props
+            loadOutputFile()
         }
     }
 
