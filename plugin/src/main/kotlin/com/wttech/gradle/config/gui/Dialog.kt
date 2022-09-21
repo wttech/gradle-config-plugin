@@ -7,7 +7,6 @@ import java.awt.HeadlessException
 import java.awt.Toolkit
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
-import javax.swing.JComponent
 import javax.swing.JDialog
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -19,46 +18,34 @@ class Dialog(val config: Config) {
 
     private var cancelled = false
 
-    private val migLayout = MigLayout(
-        "insets 10 10 10 10",
-        "[fill,grow][fill,grow]",
-        "[fill,grow]"
-    )
+    private val dialog = JDialog().apply {
+        title = "Config"
+        layout = MigLayout("debug, fill")
+        isAlwaysOnTop = true
+        isModal = true
+        isResizable = true
 
-    private val dialog by lazy {
-        JDialog().apply {
-            title = "Config"
-            layout = migLayout
-            isAlwaysOnTop = true
-            isModal = true
-            isResizable = false
-
-            addWindowListener(object : WindowAdapter() {
-                override fun windowClosing(e: WindowEvent) {
-                    e.window.dispose()
-                    cancelled = true
-                }
-            })
-        }
+        addWindowListener(object : WindowAdapter() {
+            override fun windowClosing(e: WindowEvent) {
+                e.window.dispose()
+                cancelled = true
+            }
+        })
     }
 
-    private val tabPane by lazy {
-        JTabbedPane().also { tabs ->
-            dialog.add(tabs, "span, wrap")
+    private val tabPane = JTabbedPane().also { tabs ->
+        dialog.add(tabs, "grow")
 
-            config.groups.get().forEach { group ->
-                tabs.add(group.name, JPanel().also { tab ->
-                    tab.layout = migLayout
+        config.groups.get().forEach { group ->
+            tabs.addTab(group.name, JPanel(MigLayout("debug, fill, insets 0")).also { tab ->
+                group.props.get().forEach { prop ->
+                    tab.add(JPanel(MigLayout("debug, fill, insets 5")).also { propPanel ->
+                        propPanel.add(JLabel(prop.name), "wrap")
+                        propPanel.add(JTextField(prop.value.orNull), " w 300::, growx, wrap")
+                    }, "growx, wrap")
+                }
 
-                    group.props.get().forEach { prop ->
-                        JPanel().also {panel ->
-                            panel.layout = migLayout
-                            panel.add(JLabel(prop.name))
-                            panel.add(JTextField(prop.value.get()))
-                        }
-                    }
-                })
-            }
+            })
         }
     }
 
