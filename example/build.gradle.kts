@@ -6,28 +6,22 @@ config {
     task {
         group("general") {
             prop("infra") {
-                text {
-                    value.set("aws")
-                }
+                value.set("aws")
+                options.set(listOf("aws", "gcp", "az"))
             }
             prop("envType") {
-                text {
-                    value.set("afe_single")
-                }
+                value.set("afe_single")
+                options.set(listOf())
             }
         }
         group("aws_afe_single") {
             visible { name == "${value("infra")}_${value("envType")}" }
 
             prop("env") {
-                text {
-                    value.set("kp")
-                }
+                value.set("kp")
             }
             prop("envMode") {
-                text {
-                    value.set("dev")
-                }
+                value.set("dev")
             }
             prop("aemInstancePassword") {
 

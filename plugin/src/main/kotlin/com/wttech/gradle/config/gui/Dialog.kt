@@ -1,10 +1,6 @@
 package com.wttech.gradle.config.gui
 
-import com.wttech.gradle.config.Config
-import com.wttech.gradle.config.ConfigException
-import com.wttech.gradle.config.Prop
-import com.wttech.gradle.config.value.Text
-import com.wttech.gradle.config.value.Texts
+import com.wttech.gradle.config.*
 import net.miginfocom.swing.MigLayout
 import java.awt.HeadlessException
 import java.awt.Toolkit
@@ -16,7 +12,7 @@ class Dialog(val config: Config, val onApply: () -> Unit) {
 
     private var cancelled = false
 
-    val layoutDebug = false
+    val layoutDebug = config.config.debugMode.get()
 
     val layoutConstraints = mutableListOf("fill").apply { if (layoutDebug) add("debug") }.joinToString(",")
 
@@ -39,32 +35,43 @@ class Dialog(val config: Config, val onApply: () -> Unit) {
         dialog.add(tabs, "grow, span, wrap")
 
         config.groups.get().forEach { group ->
-            tabs.addTab(group.name, JPanel(MigLayout("$layoutConstraints, insets 0")).also { tab ->
+            tabs.addTab(group.label.get(), JPanel(MigLayout("$layoutConstraints, insets 0")).also { tab ->
                 group.props.get().forEach { prop ->
                     tab.add(JPanel(MigLayout("$layoutConstraints, insets 5")).also { propPanel ->
-                        propPanel.add(JLabel(prop.name), "wrap")
+                        propPanel.add(JLabel(prop.label.get()), "wrap")
                         propPanel.add(propField(prop), " w 300::, growx, wrap")
                     }, "growx, wrap")
                 }
-
             })
         }
     }
 
-    private fun propField(prop: Prop) = when (val vh = prop.valueHolder) {
-        is Text -> JTextField().also { field ->
-            field.text = vh.value.orNull
-            vh.value.set(config.project.provider { field.text })
+    private fun propField(prop: Prop<out Any>): JComponent = when (prop) {
+        is SingleProp -> {
+            if (prop.options.get().isEmpty()) {
+                JTextField().also { field ->
+                    field.text = prop.value.orNull
+                    prop.value.set(config.project.provider { field.text })
+                }
+            } else {
+                JComboBox(prop.options.get().toTypedArray()).apply {
+                    selectedItem = prop.value()
+                    prop.value.set(config.project.provider { selectedItem?.toString() })
+                }
+            }
         }
-        is Texts -> {
-            if (vh.options.get().isEmpty()) {
+        is ListProp -> {
+            if (prop.options.get().isEmpty()) {
                 JTextArea().also { field ->
-                    field.text = vh.value.orNull?.joinToString("<br>")
-                    vh.value.set(config.project.provider { field.text.split("<br>") })
+                    field.text = prop.value.orNull?.joinToString("<br>")
+                    prop.value.set(config.project.provider { field.text.split("<br>") })
                 }
             } else {
                 TODO("multiple options selection is not yet implemented")
             }
+        }
+        is MapProp -> {
+            TODO("map value is not yet supported")
         }
         else -> throw ConfigException("Config property '${prop.name}' has invalid type!")
     }

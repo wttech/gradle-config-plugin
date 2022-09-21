@@ -4,6 +4,7 @@ import com.wttech.gradle.config.gui.Dialog
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
+import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
 
 open class Config : DefaultTask() {
@@ -38,12 +39,21 @@ open class Config : DefaultTask() {
     fun prop(propName: String) = props.firstOrNull { it.name == propName }
         ?: throw ConfigException("Prop '$propName' is not defined!")
 
-    fun value(propName: String) = prop(propName).value
+    fun value(propName: String) = prop(propName).value()
 
     @get:Internal
-    val values get() = props.associate {
-        println(it)
-        it.name to it.valueHolder.value.orNull
+    val values get() = props.associate { it.name to it.value() }
+
+    @Internal
+    val yaml = project.objects.property(Yaml::class.java).apply {
+        convention(project.provider {
+            Yaml(DumperOptions().apply {
+                indent = 2
+                isPrettyFlow = true
+                defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
+            })
+        })
+        finalizeValueOnRead()
     }
 
     @TaskAction
@@ -54,6 +64,8 @@ open class Config : DefaultTask() {
 
         // Capture values
         var valuesCaptured: Map<String, Any?> = mapOf()
+
+        logger.lifecycle("Config '$name' is gathering values using input mode '${inputMode.orNull}'")
         when (inputMode.get()) {
             InputMode.GUI -> {
                 Dialog.render(this) {
@@ -64,7 +76,18 @@ open class Config : DefaultTask() {
             else -> throw ConfigException("Config input mode is not specified!")
         }
 
-        println(Yaml().dump(valuesCaptured))
+        if (config.debugMode.get()) {
+            logger.lifecycle("Config '$name' values are as follows (debug mode is on)")
+            println("\n${yaml.get().dump(valuesCaptured)}\n")
+        }
+
+        val file = outputFile.get().asFile
+        logger.lifecycle("Config '$name' is outputting values to file '$file'")
+        file.apply {
+            parentFile.mkdirs()
+        }.bufferedWriter().use {
+            yaml.get().dump(valuesCaptured, it)
+        }
     }
 
     init {
