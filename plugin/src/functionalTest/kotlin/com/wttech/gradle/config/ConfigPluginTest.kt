@@ -1,7 +1,5 @@
 package com.wttech.gradle.config
 
-import java.io.File
-import java.nio.file.Files
 import kotlin.test.assertTrue
 import kotlin.test.Test
 import org.gradle.testkit.runner.GradleRunner
@@ -12,30 +10,34 @@ class ConfigPluginTest {
 
     @get:Rule val tempFolder = TemporaryFolder()
 
-    private fun getProjectDir() = tempFolder.root
+    private val tempDir get() = tempFolder.root
 
-    private fun getBuildFile() = getProjectDir().resolve("build.gradle.kts")
+    private val buildFile get() = tempDir.resolve("build.gradle.kts")
 
-    private fun getSettingsFile() = getProjectDir().resolve("settings.gradle.kts")
+    private val settingsFile get() = tempDir.resolve("settings.gradle.kts")
 
-    @Test fun `can run task`() {
-        // Setup the test build
-        getSettingsFile().writeText("")
-        getBuildFile().writeText("""
+    private fun runBuild(vararg args: String) = GradleRunner.create().run {
+        forwardOutput()
+        withPluginClasspath()
+        withArguments(*args)
+        withProjectDir(tempDir)
+        build()
+    }
+
+    @Test
+    fun `can run task`() {
+        settingsFile.writeText("")
+        buildFile.writeText("""
         plugins {
             id("com.wttech.config")
         }
+        
+        config {
+        
+        }
         """.trimIndent())
 
-        // Run the build
-        val runner = GradleRunner.create()
-        runner.forwardOutput()
-        runner.withPluginClasspath()
-        runner.withArguments("greeting")
-        runner.withProjectDir(getProjectDir())
-        val result = runner.build();
-
-        // Verify the result
+        val result = runBuild("greeting")
         assertTrue(result.output.contains("Hello from plugin 'com.wttech.config'"))
     }
 }

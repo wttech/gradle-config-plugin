@@ -1,6 +1,7 @@
 plugins {
     `java-gradle-plugin`
     `maven-publish`
+    id("com.gradle.plugin-publish") version "0.20.0"
     id("org.jetbrains.kotlin.jvm") version "1.6.21"
 }
 
@@ -11,6 +12,8 @@ repositories {
 dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("org.yaml:snakeyaml:1.32")
+
 }
 
 testing {
@@ -44,4 +47,11 @@ gradlePlugin.testSourceSets(sourceSets["functionalTest"])
 
 tasks.named<Task>("check") {
     dependsOn(testing.suites.named("functionalTest"))
+}
+
+pluginBundle {
+    website = "https://github.com/wttech/gradle-aem-plugin"
+    vcsUrl = "https://github.com/wttech/gradle-aem-plugin.git"
+    description = "Gradle AEM Plugin"
+    tags = listOf("aem", "cq", "vault", "scr")
 }
