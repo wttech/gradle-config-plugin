@@ -1,6 +1,6 @@
 package com.wttech.gradle.config
 
-enum class PropertyType {
+enum class PropType {
     TEXT,
     TEXTS,
     PASSWORD
