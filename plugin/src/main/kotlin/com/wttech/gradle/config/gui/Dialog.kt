@@ -7,20 +7,19 @@ import java.awt.HeadlessException
 import java.awt.Toolkit
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
-import javax.swing.JDialog
-import javax.swing.JLabel
-import javax.swing.JPanel
-import javax.swing.JTabbedPane
-import javax.swing.JTextField
-import javax.swing.UIManager
+import javax.swing.*
 
 class Dialog(val config: Config) {
 
     private var cancelled = false
 
+    val layoutDebug = false
+
+    val layoutConstraints = mutableListOf("fill").apply { if (layoutDebug) add("debug") }.joinToString(",")
+
     private val dialog = JDialog().apply {
         title = "Config"
-        layout = MigLayout("debug, fill")
+        layout = MigLayout(layoutConstraints)
         isAlwaysOnTop = true
         isModal = true
         isResizable = true
@@ -34,12 +33,12 @@ class Dialog(val config: Config) {
     }
 
     private val tabPane = JTabbedPane().also { tabs ->
-        dialog.add(tabs, "grow")
+        dialog.add(tabs, "grow, span, wrap")
 
         config.groups.get().forEach { group ->
-            tabs.addTab(group.name, JPanel(MigLayout("debug, fill, insets 0")).also { tab ->
+            tabs.addTab(group.name, JPanel(MigLayout("$layoutConstraints, insets 0")).also { tab ->
                 group.props.get().forEach { prop ->
-                    tab.add(JPanel(MigLayout("debug, fill, insets 5")).also { propPanel ->
+                    tab.add(JPanel(MigLayout("$layoutConstraints, insets 5")).also { propPanel ->
                         propPanel.add(JLabel(prop.name), "wrap")
                         propPanel.add(JTextField(prop.value.orNull), " w 300::, growx, wrap")
                     }, "growx, wrap")
@@ -47,6 +46,16 @@ class Dialog(val config: Config) {
 
             })
         }
+    }
+
+    private val closeButton = JButton("Apply").apply {
+        addActionListener { dialog.dispose() }
+        dialog.add(this, "span, wrap")
+    }
+
+    private val actionsPanel = JPanel(MigLayout(layoutConstraints)).apply {
+        add(closeButton, "align center")
+        dialog.add(this, "span, growx, wrap")
     }
 
     private fun JDialog.centre() {
