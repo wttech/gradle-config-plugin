@@ -62,6 +62,18 @@ open class Config : DefaultTask() {
         groups.finalizeValueOnRead()
         groups.get().forEach { it.props.finalizeValueOnRead() }
 
+        if (config.debugMode.get()) {
+            logger.lifecycle("Config '$name' groups and properties are defined like follows (debug mode is on)")
+            println()
+            groups.get().forEach { group ->
+                println(group)
+                group.props.get().forEach { prop ->
+                    println(prop)
+                }
+            }
+            println()
+        }
+
         // Capture values
         var valuesCaptured: Map<String, Any?> = mapOf()
 

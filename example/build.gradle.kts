@@ -10,7 +10,7 @@ config {
                 options.set(listOf("aws", "gcp", "az"))
             }
             prop("envType") {
-                value.set("afe_single")
+                value.set("afe_single2")
                 options.set(listOf())
             }
         }

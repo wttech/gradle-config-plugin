@@ -6,9 +6,15 @@ abstract class Prop<V: Any>(val group: Group, val name: String) {
 
     val label = project.objects.property(String::class.java).convention(name.capitalize())
 
+    val visible = project.objects.property(Boolean::class.java).convention(true)
+
+    fun visible(predicate: () -> Boolean) {
+        visible.set(project.provider { predicate() })
+    }
+
     val description = project.objects.property(String::class.java)
 
     abstract fun value(): V?
 
-    override fun toString() = "Prop(group=${group.name}, name=$name, value=${value()}"
+    override fun toString() = "Prop(group=${group.name}, name=$name, value=${value()})"
 }

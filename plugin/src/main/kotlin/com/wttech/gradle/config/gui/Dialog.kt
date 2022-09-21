@@ -36,6 +36,8 @@ class Dialog(val config: Config, val onApply: () -> Unit) {
 
         config.groups.get().forEach { group ->
             tabs.addTab(group.label.get(), JPanel(MigLayout("$layoutConstraints, insets 0")).also { tab ->
+                tab.isVisible = group.visible.get()
+
                 group.props.get().forEach { prop ->
                     tab.add(JPanel(MigLayout("$layoutConstraints, insets 5")).also { propPanel ->
                         propPanel.add(JLabel(prop.label.get()), "wrap")
@@ -52,11 +54,13 @@ class Dialog(val config: Config, val onApply: () -> Unit) {
                 JTextField().also { field ->
                     field.text = prop.value.orNull
                     prop.value.set(config.project.provider { field.text })
+                    field.addActionListener { prop.value.set(field.text) }
                 }
             } else {
-                JComboBox(prop.options.get().toTypedArray()).apply {
-                    selectedItem = prop.value()
-                    prop.value.set(config.project.provider { selectedItem?.toString() })
+                JComboBox(prop.options.get().toTypedArray()).also { field ->
+                    field.selectedItem = prop.value()
+                    prop.value.set(config.project.provider { field.selectedItem?.toString() })
+                    field.addActionListener { prop.value.set(field.selectedItem?.toString()) }
                 }
             }
         }
@@ -74,6 +78,8 @@ class Dialog(val config: Config, val onApply: () -> Unit) {
             TODO("map value is not yet supported")
         }
         else -> throw ConfigException("Config property '${prop.name}' has invalid type!")
+    }.apply {
+        isVisible = prop.visible.get()
     }
 
     private val applyButton = JButton("Apply").apply {

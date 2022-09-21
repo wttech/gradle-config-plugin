@@ -6,6 +6,12 @@ class Group(val task: Config, val name: String) {
 
     val label = project.objects.property(String::class.java).convention(name.capitalize())
 
+    val visible = project.objects.property(Boolean::class.java).convention(true)
+
+    fun visible(predicate: () -> Boolean) {
+        visible.set(project.provider { predicate() })
+    }
+
     val props = project.objects.listProperty(Prop::class.java)
 
     fun prop(name: String, options: SingleProp.() -> Unit) {
@@ -20,11 +26,5 @@ class Group(val task: Config, val name: String) {
         props.add(project.provider { MapProp(this, name).apply(options) })
     }
 
-    private var visiblePredicate: () -> Boolean = { true }
-
-    fun visible(predicate: () -> Boolean) {
-        this.visiblePredicate = predicate
-    }
-
-    val visible get() = visiblePredicate()
+    override fun toString(): String = "Group(name='$name', visible=${visible.get()})"
 }
