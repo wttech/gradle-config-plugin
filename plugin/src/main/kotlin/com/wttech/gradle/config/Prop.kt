@@ -1,16 +1,18 @@
 package com.wttech.gradle.config
 
+import com.wttech.gradle.config.value.Text
+
 class Prop(val group: Group, val name: String) {
 
-    private val project = group.project
+    val project = group.project
 
-    val type = project.objects.property(PropType::class.java).apply {
-        set(PropType.TEXT)
+    internal var valueHolder: Value<out Any> = Text(this)
+
+    fun text(options: Text.() -> Unit) {
+        valueHolder = Text(this).apply(options)
     }
 
-    val value = project.objects.property(String::class.java)
+    val value get() = valueHolder.value.orNull
 
-    fun text() {
-        type.set(PropType.TEXT)
-    }
+    override fun toString() = "Prop(name=$name, valueHolder=$valueHolder)"
 }

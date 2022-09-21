@@ -2,6 +2,9 @@ package com.wttech.gradle.config.gui
 
 import com.wttech.gradle.config.Config
 import com.wttech.gradle.config.ConfigException
+import com.wttech.gradle.config.Prop
+import com.wttech.gradle.config.value.Text
+import com.wttech.gradle.config.value.Texts
 import net.miginfocom.swing.MigLayout
 import java.awt.HeadlessException
 import java.awt.Toolkit
@@ -9,7 +12,7 @@ import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import javax.swing.*
 
-class Dialog(val config: Config) {
+class Dialog(val config: Config, val onApply: () -> Unit) {
 
     private var cancelled = false
 
@@ -40,7 +43,7 @@ class Dialog(val config: Config) {
                 group.props.get().forEach { prop ->
                     tab.add(JPanel(MigLayout("$layoutConstraints, insets 5")).also { propPanel ->
                         propPanel.add(JLabel(prop.name), "wrap")
-                        propPanel.add(JTextField(prop.value.orNull), " w 300::, growx, wrap")
+                        propPanel.add(propField(prop), " w 300::, growx, wrap")
                     }, "growx, wrap")
                 }
 
@@ -48,13 +51,34 @@ class Dialog(val config: Config) {
         }
     }
 
-    private val closeButton = JButton("Apply").apply {
-        addActionListener { dialog.dispose() }
+    private fun propField(prop: Prop) = when (val vh = prop.valueHolder) {
+        is Text -> JTextField().also { field ->
+            field.text = vh.value.orNull
+            vh.value.set(config.project.provider { field.text })
+        }
+        is Texts -> {
+            if (vh.options.get().isEmpty()) {
+                JTextArea().also { field ->
+                    field.text = vh.value.orNull?.joinToString("<br>")
+                    vh.value.set(config.project.provider { field.text.split("<br>") })
+                }
+            } else {
+                TODO("multiple options selection is not yet implemented")
+            }
+        }
+        else -> throw ConfigException("Config property '${prop.name}' has invalid type!")
+    }
+
+    private val applyButton = JButton("Apply").apply {
+        addActionListener {
+            onApply()
+            dialog.dispose()
+        }
         dialog.add(this, "span, wrap")
     }
 
     private val actionsPanel = JPanel(MigLayout(layoutConstraints)).apply {
-        add(closeButton, "align center")
+        add(applyButton, "align center")
         dialog.add(this, "span, growx, wrap")
     }
 
@@ -78,10 +102,10 @@ class Dialog(val config: Config) {
                 "Ultimately run command with '--no-daemon' option."
 
         @Suppress("TooGenericExceptionCaught")
-        fun make(config: Config) = try {
+        fun render(config: Config, onApply: () -> Unit) = try {
             val laf = UIManager.getLookAndFeel()
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
-            val dialog = Dialog(config)
+            val dialog = Dialog(config, onApply)
             UIManager.setLookAndFeel(laf)
             dialog.render()
         } catch (e: HeadlessException) {

@@ -38,15 +38,33 @@ open class Config : DefaultTask() {
     fun prop(propName: String) = props.firstOrNull { it.name == propName }
         ?: throw ConfigException("Prop '$propName' is not defined!")
 
-    fun value(propName: String) = prop(propName).value.orNull
+    fun value(propName: String) = prop(propName).value
+
+    @get:Internal
+    val values get() = props.associate {
+        println(it)
+        it.name to it.valueHolder.value.orNull
+    }
 
     @TaskAction
     fun evaluate() {
+        // Freeze lazy definitions
+        groups.finalizeValueOnRead()
+        groups.get().forEach { it.props.finalizeValueOnRead() }
+
+        // Capture values
+        var valuesCaptured: Map<String, Any?> = mapOf()
         when (inputMode.get()) {
-            InputMode.GUI -> { Dialog(this).render() }
+            InputMode.GUI -> {
+                Dialog.render(this) {
+                    valuesCaptured = values
+                }
+            }
             InputMode.CLI -> TODO()
             else -> throw ConfigException("Config input mode is not specified!")
         }
+
+        println(Yaml().dump(valuesCaptured))
     }
 
     init {
