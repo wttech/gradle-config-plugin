@@ -1,8 +1,8 @@
 package com.wttech.gradle.config.gui
 
-import com.jgoodies.binding.adapter.ComboBoxAdapter
-import com.jgoodies.binding.adapter.TextComponentConnector
-import com.jgoodies.binding.beans.PropertyAdapter
+import com.jgoodies.binding.adapter.Bindings
+import com.jgoodies.binding.list.SelectionInList
+import com.jgoodies.binding.value.AbstractValueModel
 import com.wttech.gradle.config.*
 import net.miginfocom.swing.MigLayout
 import java.awt.HeadlessException
@@ -10,7 +10,6 @@ import java.awt.Toolkit
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import javax.swing.*
-
 
 class Dialog(val config: Config, val onApply: () -> Unit) {
 
@@ -35,6 +34,68 @@ class Dialog(val config: Config, val onApply: () -> Unit) {
         })
     }
 
+    private abstract inner class PropValueModel : AbstractValueModel() {
+        override fun setValue(v: Any?) {
+            updateValue(v)
+            render()
+        }
+        open fun updateValue(v: Any?) {}
+    }
+
+    class PropPanel(val data: Prop<*>, val container: JPanel, val field: JComponent)
+    private val propPanels = mutableListOf<PropPanel>()
+
+    private fun propField(prop: Prop<out Any>): JComponent = when (prop) {
+        is SingleProp -> {
+            if (prop.options.get().isEmpty()) {
+                JTextField().apply {
+                    Bindings.bind(this, object : PropValueModel() {
+                        override fun getValue() = prop.value.orNull
+                        override fun updateValue(v: Any?) { prop.value.set(v?.toString()) }
+                    })
+                }
+            } else {
+                JComboBox<String>().apply {
+                    val valueModel = object : PropValueModel() {
+                        override fun getValue() = prop.value.orNull
+                        override fun updateValue(v: Any?) { prop.value.set(v?.toString()) }
+                    }
+                    val optionsModel = object : PropValueModel() {
+                        override fun getValue() = prop.options.orNull ?: listOf()
+                    }
+                    Bindings.bind<String>(this, SelectionInList(optionsModel, valueModel))
+                }
+            }
+        }
+        is ListProp -> {
+            if (prop.options.get().isEmpty()) {
+                JTextArea().apply {
+                    Bindings.bind(this, object : PropValueModel() {
+                        override fun getValue() = prop.value.orNull?.joinToString("\n")
+                        override fun setValue(v: Any?) { prop.value.set(v?.toString()?.split("\n")) }
+                    })
+                }
+            } else {
+                TODO("multiple options selection is not yet implemented")
+            }
+        }
+        is MapProp -> {
+            JTextArea().apply {
+                val valueModel = object : PropValueModel() {
+                    override fun getValue() = prop.value.orNull?.map { "${it.key}=${it.value}" }?.joinToString("\n")
+                    override fun updateValue(v: Any?) {
+                        prop.value.set(v?.toString()?.split("\n")?.associate {
+                            it.substringBefore("=") to it.substringAfter("=")
+                        })
+                    }
+                }
+                Bindings.bind(this, valueModel)
+                Bindings.addComponentPropertyHandler(this, valueModel)
+            }
+        }
+        else -> throw ConfigException("Config property '${prop.name}' has invalid type!")
+    }
+
     private val tabPane = JTabbedPane().also { tabs ->
         dialog.add(tabs, "grow, span, wrap")
 
@@ -43,42 +104,16 @@ class Dialog(val config: Config, val onApply: () -> Unit) {
                 group.props.get().forEach { prop ->
                     tab.add(JPanel(MigLayout("$layoutConstraints, insets 5")).also { propPanel ->
                         propPanel.add(JLabel(prop.label.get()), "wrap")
-                        when (val propField = propField(prop)) {
+                        val propField = propField(prop)
+                        when (propField) {
                             is JTextArea -> propPanel.add(propField, "w 300::, h 60::, growx, wrap")
                             else -> propPanel.add(propField, "w 300::, growx, wrap")
                         }
+                        propPanels.add(PropPanel(prop, propPanel, propField))
                     }, "growx, wrap")
                 }
             })
         }
-    }
-
-    private fun propField(prop: Prop<out Any>): JComponent = when (prop) {
-        is SingleProp -> {
-            if (prop.options.get().isEmpty()) {
-                JTextField().also { field ->
-                    TextComponentConnector(prop.toAdapter(), field).updateTextComponent();
-                }
-            } else {
-                val model = ComboBoxAdapter(prop.options.get(), prop.toAdapter())
-                JComboBox(model)
-            }
-        }
-        is ListProp -> {
-            if (prop.options.get().isEmpty()) {
-                JTextArea().also { field ->
-                    TextComponentConnector(prop.toAdapter("\n"), field).updateTextComponent();
-                }
-            } else {
-                TODO("multiple options selection is not yet implemented")
-            }
-        }
-        is MapProp -> {
-            TODO("map value is not yet supported")
-        }
-        else -> throw ConfigException("Config property '${prop.name}' has invalid type!")
-    }.apply {
-        isVisible = prop.visible.get()
     }
 
     private val applyButton = JButton("Apply").apply {
@@ -102,7 +137,21 @@ class Dialog(val config: Config, val onApply: () -> Unit) {
         setLocation(x, y)
     }
 
+    fun updateGroupTabs() {
+        // TODO ...
+    }
+
+    fun updatePropPanels() {
+        propPanels.forEach { panel ->
+            panel.container.isVisible = panel.data.visible.get()
+            panel.field.isEnabled = panel.data.enabled.get()
+        }
+    }
+
     fun render() {
+        updateGroupTabs()
+        updatePropPanels()
+
         dialog.pack()
         dialog.centre()
         dialog.isVisible = true
@@ -127,29 +176,3 @@ class Dialog(val config: Config, val onApply: () -> Unit) {
         }
     }
 }
-
-fun MapProp.toAdapter(): PropertyAdapter<Any> {
-    return PropertyAdapter(object {
-        var p: Map<String, Any?>?
-            get() = value.orNull
-            set(v) { value.set(v) }
-    }, "p")
-}
-
-fun SingleProp.toAdapter(): PropertyAdapter<Any> {
-    return PropertyAdapter(object {
-        var p: String?
-            get() = value.orNull
-            set(v) { value.set(v) }
-    }, "p")
-}
-
-fun ListProp.toAdapter(separator: String): PropertyAdapter<Any> {
-    return PropertyAdapter(object {
-        var p: String?
-            get() = value.orNull?.joinToString(separator)
-            set(v) { value.set(v?.split(separator)) }
-    }, "p")
-}
-
-

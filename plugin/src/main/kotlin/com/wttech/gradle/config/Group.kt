@@ -26,7 +26,6 @@ class Group(val task: Config, val name: String) {
         props.add(project.provider { MapProp(this, name).apply(options) })
     }
 
-    override fun toString(): String = "Group(name='$name', visible=${visible.get()})"
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -37,6 +36,7 @@ class Group(val task: Config, val name: String) {
 
         return true
     }
-
     override fun hashCode() = name.hashCode()
+
+    override fun toString(): String = "Group(name='$name', visible=${visible.get()})"
 }
