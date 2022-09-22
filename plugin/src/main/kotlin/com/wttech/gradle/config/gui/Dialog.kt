@@ -1,5 +1,8 @@
 package com.wttech.gradle.config.gui
 
+import com.jgoodies.binding.adapter.ComboBoxAdapter
+import com.jgoodies.binding.adapter.TextComponentConnector
+import com.jgoodies.binding.beans.PropertyAdapter
 import com.wttech.gradle.config.*
 import net.miginfocom.swing.MigLayout
 import java.awt.HeadlessException
@@ -7,6 +10,7 @@ import java.awt.Toolkit
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import javax.swing.*
+
 
 class Dialog(val config: Config, val onApply: () -> Unit) {
 
@@ -36,8 +40,6 @@ class Dialog(val config: Config, val onApply: () -> Unit) {
 
         config.groups.get().forEach { group ->
             tabs.addTab(group.label.get(), JPanel(MigLayout("$layoutConstraints, insets 0")).also { tab ->
-                tab.isVisible = group.visible.get()
-
                 group.props.get().forEach { prop ->
                     tab.add(JPanel(MigLayout("$layoutConstraints, insets 5")).also { propPanel ->
                         propPanel.add(JLabel(prop.label.get()), "wrap")
@@ -52,23 +54,18 @@ class Dialog(val config: Config, val onApply: () -> Unit) {
         is SingleProp -> {
             if (prop.options.get().isEmpty()) {
                 JTextField().also { field ->
-                    field.text = prop.value.orNull
-                    prop.value.set(config.project.provider { field.text })
-                    field.addActionListener { prop.value.set(field.text) }
+                    TextComponentConnector.connect(PropertyAdapter(prop, "value"), field);
                 }
             } else {
-                JComboBox(prop.options.get().toTypedArray()).also { field ->
-                    field.selectedItem = prop.value()
-                    prop.value.set(config.project.provider { field.selectedItem?.toString() })
-                    field.addActionListener { prop.value.set(field.selectedItem?.toString()) }
-                }
+                val model = ComboBoxAdapter(prop.options.get(), PropertyAdapter(prop, "value"))
+                JComboBox(model)
             }
         }
         is ListProp -> {
             if (prop.options.get().isEmpty()) {
                 JTextArea().also { field ->
-                    field.text = prop.value.orNull?.joinToString("<br>")
-                    prop.value.set(config.project.provider { field.text.split("<br>") })
+                    field.text = prop.value?.joinToString("<br>")
+                    prop.prop.set(config.project.provider { field.text.split("<br>") })
                 }
             } else {
                 TODO("multiple options selection is not yet implemented")

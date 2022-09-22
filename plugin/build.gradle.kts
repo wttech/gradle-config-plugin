@@ -16,6 +16,8 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.yaml:snakeyaml:1.32")
     implementation("com.miglayout:miglayout:3.7.4")
+    implementation("com.jgoodies:jgoodies-binding:2.13.0")
+
 }
 
 testing {

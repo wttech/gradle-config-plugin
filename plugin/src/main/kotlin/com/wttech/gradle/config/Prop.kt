@@ -14,7 +14,8 @@ abstract class Prop<V: Any>(val group: Group, val name: String) {
 
     val description = project.objects.property(String::class.java)
 
-    abstract fun value(): V?
 
-    override fun toString() = "Prop(group=${group.name}, name=$name, value=${value()})"
+    override fun toString() = "Prop(group=${group.name}, name=$name, value=$value)"
+
+    abstract var value: V?
 }

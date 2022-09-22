@@ -4,11 +4,13 @@ class ListProp(group: Group, name: String): Prop<List<String>>(group, name) {
 
     private val project = group.project
 
-    val value = project.objects.listProperty(String::class.java)
+    val prop = project.objects.listProperty(String::class.java)
+
+    override var value: List<String>?
+        get() = prop.orNull
+        set(value) { prop.set(value) }
 
     val options = project.objects.listProperty(String::class.java).apply {
         set(listOf())
     }
-
-    override fun value() = value.orNull?.toList()
 }

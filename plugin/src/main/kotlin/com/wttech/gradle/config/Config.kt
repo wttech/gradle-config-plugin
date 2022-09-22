@@ -39,10 +39,10 @@ open class Config : DefaultTask() {
     fun prop(propName: String) = props.firstOrNull { it.name == propName }
         ?: throw ConfigException("Prop '$propName' is not defined!")
 
-    fun value(propName: String) = prop(propName).value()
+    fun value(propName: String) = prop(propName).value
 
     @get:Internal
-    val values get() = props.associate { it.name to it.value() }
+    val values get() = props.associate { it.name to it.value }
 
     @Internal
     val yaml = project.objects.property(Yaml::class.java).apply {
