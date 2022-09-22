@@ -106,7 +106,7 @@ class Dialog(val config: Config) {
         dialog.add(tabs, "grow, span, wrap")
 
         config.groups.get().forEach { group ->
-            val panel = JPanel(MigLayout(layoutConstraints("fill", "insets 0"))).also { tab ->
+            val panel = JPanel(MigLayout(layoutConstraints("fillx", "insets 0"))).also { tab ->
                 group.props.get().forEach { prop ->
                     tab.add(JPanel(MigLayout(layoutConstraints("fill", "insets 5"))).also { propPanel ->
                         propPanel.add(JLabel(prop.label.get()), "wrap")
@@ -130,7 +130,7 @@ class Dialog(val config: Config) {
 
     private val actionsPanel = JPanel(MigLayout(layoutConstraints("fill"))).apply {
         add(applyButton, "align center")
-        dialog.add(this, "span, growx, wrap")
+        dialog.add(this, "span, growx, wrap, south")
     }
 
     private fun JDialog.centre() {
