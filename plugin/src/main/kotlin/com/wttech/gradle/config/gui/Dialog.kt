@@ -99,7 +99,7 @@ class Dialog(val config: Config) {
         else -> throw ConfigException("Config property '${prop.name}' has invalid type!")
     }
 
-    class GroupTab(val group: Group, val tab: JPanel)
+    class GroupTab(val group: Group, val panel: JPanel)
     private val groupTabs = mutableListOf<GroupTab>()
 
     private val tabPane = JTabbedPane().also { tabs ->
@@ -141,17 +141,26 @@ class Dialog(val config: Config) {
         setLocation(x, y)
     }
 
-    private var groupsStateOld = -1
+    private var groupsVisibleOld = -1
 
+    /**
+     * There is no direct way to hide particular panel.
+     * As a workaround, only visible tabs are recreated.
+     * At the same time, recreation is avoided because field focus is lost.
+     */
     fun updateGroupTabs() {
-        val groupsStateNew = config.groups.get().hashCode()
-        if (groupsStateOld != groupsStateNew) {
+        val groupsVisible = config.groups.get().filter { it.visible.get() }
+        val groupsVisibleNew = groupsVisible.map { Pair(it.name, it.visible.get()) }.hashCode()
+        if (groupsVisibleOld != groupsVisibleNew) {
             tabPane.removeAll()
-            groupTabs.filter { it.group.visible.get() }.forEachIndexed { index, it ->
-                tabPane.addTab(it.group.label.get(), it.tab)
-                tabPane.setEnabledAt(index, it.group.enabled.get())
+            groupTabs.filter { it.group.visible.get() }.forEach { groupTab ->
+                tabPane.addTab(groupTab.group.label.get(), groupTab.panel)
             }
-            groupsStateOld = groupsStateNew
+            groupsVisibleOld = groupsVisibleNew
+        }
+
+        groupTabs.filter { it.group.visible.get() }.forEachIndexed { index, groupTab ->
+            tabPane.setEnabledAt(index, groupTab.group.enabled.get())
         }
     }
 
