@@ -12,6 +12,12 @@ class Group(val config: Config, val name: String) {
         visible.set(project.provider { predicate() })
     }
 
+    val enabled = project.objects.property(Boolean::class.java).convention(true)
+
+    fun enabled(predicate: () -> Boolean) {
+        enabled.set(project.provider { predicate() })
+    }
+
     val props = project.objects.listProperty(Prop::class.java)
 
     fun prop(name: String, options: SingleProp.() -> Unit) {

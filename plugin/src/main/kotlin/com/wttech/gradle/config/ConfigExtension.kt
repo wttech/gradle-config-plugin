@@ -5,7 +5,10 @@ import org.gradle.api.Project
 
 open class ConfigExtension(val project: Project) {
 
-    val debugMode = project.objects.property(Boolean::class.java).convention(true)
+    val debugMode = project.objects.property(Boolean::class.java).apply {
+        convention(false)
+        project.findProperty("config.debugMode")?.let { set(it.toString().toBoolean()) }
+    }
 
     fun fileManager() = FileManager(project)
 

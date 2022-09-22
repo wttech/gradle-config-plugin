@@ -18,6 +18,7 @@ dependencies {
     implementation("com.miglayout:miglayout:3.7.4")
     implementation("com.jgoodies:jgoodies-binding:2.13.0")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.13.4")
+    implementation("com.formdev:flatlaf:2.4")
 }
 
 testing {

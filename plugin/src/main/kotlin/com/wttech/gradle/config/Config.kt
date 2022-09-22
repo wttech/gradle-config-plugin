@@ -23,18 +23,23 @@ open class Config : DefaultTask() {
     }
 
     @Internal
+    val outputDir = project.objects.directoryProperty().apply {
+        set(project.layout.projectDirectory.dir(".gradle/config"))
+    }
+
+    @Internal
     val outputCacheFile = project.objects.fileProperty().apply {
-        set(project.layout.projectDirectory.file(".gradle/config/$name.cache.yml"))
+        set(outputDir.map { it.file(".gradle/config/$name.cache.yml")})
     }
 
     @Internal
     val outputYmlFile = project.objects.fileProperty().apply {
-        set(project.layout.projectDirectory.file(".gradle/config/$name.yml"))
+        set(outputDir.map { it.file(".gradle/config/$name.yml")})
     }
 
     @Internal
     val outputJsonFile = project.objects.fileProperty().apply {
-        set(project.layout.projectDirectory.file(".gradle/config/$name.json"))
+        set(outputDir.map { it.file(".gradle/config/$name.json")})
     }
 
     // TODO deal with loading in build/tasks in GAT
@@ -51,7 +56,8 @@ open class Config : DefaultTask() {
     }
 
     @get:Internal
-    val props get() = groups.get().flatMap { it.props.get() }
+    @Suppress("unchecked_cast")
+    val props get() = groups.get().flatMap { it.props.get() } as List<Prop<Any>>
 
     fun findProp(propName: String) = props.firstOrNull { it.name == propName }
 
@@ -67,9 +73,15 @@ open class Config : DefaultTask() {
         get() = props.associate { it.name to it.value() }
         set(vs) { vs.forEach { (k, v) -> findProp(k)?.value(v) } }
 
+    private var valueFilter: Prop<Any>.() -> Boolean = { group.visible.get() && visible.get() }
+
+    fun valueFilter(predicate: Prop<Any>.() -> Boolean) {
+        this.valueFilter = predicate
+    }
+
     @get:Internal
-    val valuesCurrent: Map<String, Any?>
-        get() = props.filter { it.group.visible.get() && it.visible.get() }.associate { it.name to it.value() }
+    val valuesFiltered: Map<String, Any?>
+        get() = props.filter(valueFilter).associate { it.name to it.value() }
 
     @TaskAction
     fun process() {
@@ -82,7 +94,6 @@ open class Config : DefaultTask() {
     }
 
     private fun lockDefinitions() {
-        // Freeze lazy definitions
         groups.finalizeValueOnRead()
         groups.get().forEach { it.props.finalizeValueOnRead() }
     }
@@ -110,11 +121,11 @@ open class Config : DefaultTask() {
     }
 
     private fun captureValues() {
-        logger.lifecycle("Config '$name' is gathering values using input mode '${inputMode.orNull}'")
+        logger.lifecycle("Config '$name' is capturing values using input mode '${inputMode.orNull}'")
         when (inputMode.get()) {
             InputMode.GUI -> { Dialog.render(this) }
             InputMode.CLI -> TODO("Config CLI input mode is not yet supported!")
-            else -> throw ConfigException("Config input mode is not specified!")
+            else -> throw ConfigException("Config '$name' input mode is not specified!")
         }
     }
 
@@ -126,16 +137,16 @@ open class Config : DefaultTask() {
     }
 
     private fun saveValues() {
-        val cache = outputCacheFile.asFile.get()
-        logger.lifecycle("Config '$name' is saving cached values to file '$cache'")
-        fileManager.writeYml(cache, values)
+        val ymlCached = outputCacheFile.asFile.get()
+        logger.lifecycle("Config '$name' is saving cached values to file '$ymlCached'")
+        fileManager.writeYml(ymlCached, values)
 
-        val currentYml = outputYmlFile.asFile.get()
-        logger.lifecycle("Config '$name' is saving current values to file '$currentYml'")
-        fileManager.writeYml(currentYml, valuesCurrent)
+        val ymlFiltered = outputYmlFile.asFile.get()
+        logger.lifecycle("Config '$name' is saving filtered values to file '$ymlFiltered'")
+        fileManager.writeYml(ymlFiltered, valuesFiltered)
 
-        val currentJson = outputJsonFile.asFile.get()
-        logger.lifecycle("Config '$name' is saving current values to file '$currentJson'")
-        fileManager.writeJson(currentJson, valuesCurrent)
+        val jsonFiltered = outputJsonFile.asFile.get()
+        logger.lifecycle("Config '$name' is saving filtered values to file '$jsonFiltered'")
+        fileManager.writeJson(jsonFiltered, valuesFiltered)
     }
 }

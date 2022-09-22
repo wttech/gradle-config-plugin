@@ -1,5 +1,6 @@
 package com.wttech.gradle.config.gui
 
+import com.formdev.flatlaf.FlatLightLaf
 import com.jgoodies.binding.adapter.Bindings
 import com.jgoodies.binding.list.SelectionInList
 import com.jgoodies.binding.value.AbstractValueModel
@@ -113,7 +114,7 @@ class Dialog(val config: Config) {
                             else -> propPanel.add(propField, "w 300::, growx, wrap")
                         }
                         propPanels.add(PropPanel(prop, propPanel, propField))
-                    }, "growx, wrap")
+                    }, "growx, wrap, top")
                 }
             }
             groupTabs.add(GroupTab(group, panel))
@@ -145,7 +146,10 @@ class Dialog(val config: Config) {
         val groupsVisibleNew = groupsVisible.hashCode()
         if (groupsVisibleOld != groupsVisibleNew) {
             tabPane.removeAll()
-            groupTabs.filter { it.group.visible.get() }.forEach { tabPane.addTab(it.group.label.get(), it.tab) }
+            groupTabs.filter { it.group.visible.get() }.forEachIndexed { index, it ->
+                tabPane.addTab(it.group.label.get(), it.tab)
+                tabPane.setEnabledAt(index, it.group.enabled.get()  )
+            }
             groupsVisibleOld = groupsVisibleNew
         }
     }
@@ -173,10 +177,8 @@ class Dialog(val config: Config) {
 
         @Suppress("TooGenericExceptionCaught")
         fun render(config: Config) = try {
-            val laf = UIManager.getLookAndFeel()
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
+            FlatLightLaf.setup()
             val dialog = Dialog(config)
-            UIManager.setLookAndFeel(laf)
             dialog.render(true)
         } catch (e: HeadlessException) {
             throw ConfigException("Config GUI dialog cannot be opened in headless mode!\n$TROUBLESHOOTING")
