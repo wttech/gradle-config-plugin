@@ -28,6 +28,10 @@ open class Config : DefaultTask() {
         set(project.layout.projectDirectory.file(".gradle/config/$name.yml"))
     }
 
+    fun outputFile(path: String) {
+        outputFile.set(project.layout.projectDirectory.file(path))
+    }
+
     @Internal
     var outputAction: () -> Unit = { saveValuesAsJson() }
 

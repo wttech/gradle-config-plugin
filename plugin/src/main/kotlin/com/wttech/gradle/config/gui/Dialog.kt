@@ -96,11 +96,14 @@ class Dialog(val config: Config) {
         else -> throw ConfigException("Config property '${prop.name}' has invalid type!")
     }
 
+    class GroupTab(val group: Group, val tab: JPanel)
+    private val groupTabs = mutableListOf<GroupTab>()
+
     private val tabPane = JTabbedPane().also { tabs ->
         dialog.add(tabs, "grow, span, wrap")
 
         config.groups.get().forEach { group ->
-            tabs.addTab(group.label.get(), JPanel(MigLayout("$layoutConstraints, insets 0")).also { tab ->
+            val panel = JPanel(MigLayout("$layoutConstraints, insets 0")).also { tab ->
                 group.props.get().forEach { prop ->
                     tab.add(JPanel(MigLayout("$layoutConstraints, insets 5")).also { propPanel ->
                         propPanel.add(JLabel(prop.label.get()), "wrap")
@@ -112,7 +115,8 @@ class Dialog(val config: Config) {
                         propPanels.add(PropPanel(prop, propPanel, propField))
                     }, "growx, wrap")
                 }
-            })
+            }
+            groupTabs.add(GroupTab(group, panel))
         }
     }
 
@@ -135,7 +139,12 @@ class Dialog(val config: Config) {
     }
 
     fun updateGroupTabs() {
-        // TODO ...
+        tabPane.removeAll()
+        groupTabs.forEach { groupTab ->
+            if (groupTab.group.visible.get()) {
+                tabPane.addTab(groupTab.group.label.get(), groupTab.tab)
+            }
+        }
     }
 
     fun updatePropPanels() {
