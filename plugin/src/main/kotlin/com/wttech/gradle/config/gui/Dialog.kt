@@ -11,7 +11,7 @@ import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import javax.swing.*
 
-class Dialog(val config: Config, val onApply: () -> Unit) {
+class Dialog(val config: Config) {
 
     private var cancelled = false
 
@@ -117,10 +117,7 @@ class Dialog(val config: Config, val onApply: () -> Unit) {
     }
 
     private val applyButton = JButton("Apply").apply {
-        addActionListener {
-            onApply()
-            dialog.dispose()
-        }
+        addActionListener { dialog.dispose() }
         dialog.add(this, "span, wrap")
     }
 
@@ -163,10 +160,10 @@ class Dialog(val config: Config, val onApply: () -> Unit) {
                 "Ultimately run command with '--no-daemon' option."
 
         @Suppress("TooGenericExceptionCaught")
-        fun render(config: Config, onApply: () -> Unit) = try {
+        fun render(config: Config) = try {
             val laf = UIManager.getLookAndFeel()
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
-            val dialog = Dialog(config, onApply)
+            val dialog = Dialog(config)
             UIManager.setLookAndFeel(laf)
             dialog.render()
         } catch (e: HeadlessException) {

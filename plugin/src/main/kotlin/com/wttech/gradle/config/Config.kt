@@ -4,13 +4,19 @@ import com.wttech.gradle.config.gui.Dialog
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
-import org.yaml.snakeyaml.DumperOptions
-import org.yaml.snakeyaml.Yaml
+import java.io.File
 
 open class Config : DefaultTask() {
 
     @get:Internal
     val config by lazy { project.extensions.getByType(ConfigExtension::class.java) }
+
+    @get:Internal
+    val fileManager by lazy { config.fileManager() }
+
+    fun fileManager(options: FileManager.() -> Unit) {
+        fileManager.apply(options)
+    }
 
     @Internal
     val inputMode = project.objects.property(InputMode::class.java).apply {
@@ -20,6 +26,13 @@ open class Config : DefaultTask() {
     @Internal
     val outputFile = project.objects.fileProperty().apply {
         set(project.layout.projectDirectory.file(".gradle/config/$name.yml"))
+    }
+
+    @Internal
+    var outputAction: () -> Unit = { saveValuesAsJson() }
+
+    fun outputAction(action: () -> Unit) {
+        this.outputAction = action
     }
 
     @Internal
@@ -36,32 +49,39 @@ open class Config : DefaultTask() {
 
     @get:Internal
     val props get() = groups.get().flatMap { it.props.get() }
-    fun prop(propName: String) = props.firstOrNull { it.name == propName }
+
+    fun findProp(propName: String) = props.firstOrNull { it.name == propName }
+
+    fun hasProp(propName: String) = findProp(propName) != null
+
+    fun prop(propName: String) = findProp(propName)
         ?: throw ConfigException("Prop '$propName' is not defined!")
 
     fun value(propName: String) = prop(propName).value()
 
     @get:Internal
-    val values get() = props.associate { it.name to it.value() }
+    var values: Map<String, Any?>
+        get() = props.associate { it.name to it.value() }
+        set(vs) { vs.forEach { (k, v) -> findProp(k)?.value(v) } }
 
-    @Internal
-    val yaml = project.objects.property(Yaml::class.java).apply {
-        convention(project.provider {
-            Yaml(DumperOptions().apply {
-                indent = 2
-                isPrettyFlow = true
-                defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
-            })
-        })
-        finalizeValueOnRead()
-    }
 
     @TaskAction
-    fun evaluate() {
+    fun process() {
+        lockDefinitions()
+        printDefinitions()
+        readValues()
+        captureValues()
+        printValues()
+        saveValues()
+    }
+
+    private fun lockDefinitions() {
         // Freeze lazy definitions
         groups.finalizeValueOnRead()
         groups.get().forEach { it.props.finalizeValueOnRead() }
+    }
 
+    private fun printDefinitions() {
         if (config.debugMode.get()) {
             logger.lifecycle("Config '$name' groups and properties are defined like follows (debug mode is on)")
             println()
@@ -73,48 +93,46 @@ open class Config : DefaultTask() {
             }
             println()
         }
+    }
 
-        // Capture values
-        var valuesCaptured: Map<String, Any?> = mapOf()
+    private fun readValues() {
+        val file = outputFile.get().asFile
+        logger.lifecycle("Config '$name' is loading values from output file '$file'")
+        values = fileManager.readYml(file)
+    }
 
+    private fun captureValues() {
         logger.lifecycle("Config '$name' is gathering values using input mode '${inputMode.orNull}'")
         when (inputMode.get()) {
-            InputMode.GUI -> {
-                Dialog.render(this) {
-                    valuesCaptured = values
-                }
-            }
-            InputMode.CLI -> TODO()
+            InputMode.GUI -> { Dialog.render(this) }
+            InputMode.CLI -> TODO("Config CLI input mode is not yet supported!")
             else -> throw ConfigException("Config input mode is not specified!")
         }
+    }
 
+    private fun printValues() {
         if (config.debugMode.get()) {
             logger.lifecycle("Config '$name' values are as follows (debug mode is on)")
-            println("\n${yaml.get().dump(valuesCaptured)}\n")
+            println("\n${fileManager.yaml.get().dump(values)}\n")
         }
+    }
 
-        val file = outputFile.get().asFile
+    private fun saveValues() {
+        saveValuesAsYml(outputFile.get().asFile)
+        outputAction()
+    }
+
+    fun saveValuesAsYml() = saveValuesAsYml(outputFile.get().asFile)
+
+    fun saveValuesAsYml(file: File) {
         logger.lifecycle("Config '$name' is outputting values to file '$file'")
-        file.apply {
-            parentFile.mkdirs()
-        }.bufferedWriter().use {
-            yaml.get().dump(valuesCaptured, it)
-        }
+        fileManager.writeYml(file, values)
     }
 
-    init {
-        if (outputLoaded.get()) { // TODO determine when to load props
-            loadOutputFile()
-        }
-    }
+    fun saveValuesAsJson() = saveValuesAsJson(outputFile.get().asFile.let { it.parentFile.resolve("${it.nameWithoutExtension}.json") })
 
-    private fun loadOutputFile() {
-        val file = outputFile.get().asFile
-        if (file.exists()) {
-            val values: Map<String, Any?> = file.bufferedReader().use { Yaml().load(it) }
-            values.forEach { (k, v) ->
-                project.rootProject.extensions.extraProperties.set(k, v)
-            }
-        }
+    fun saveValuesAsJson(file: File) {
+        logger.lifecycle("Config '$name' is outputting values to file '$file'")
+        fileManager.writeJson(file, values)
     }
 }

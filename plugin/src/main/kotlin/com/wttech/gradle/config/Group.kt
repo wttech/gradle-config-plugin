@@ -1,8 +1,8 @@
 package com.wttech.gradle.config
 
-class Group(val task: Config, val name: String) {
+class Group(val config: Config, val name: String) {
 
-    val project = task.project
+    val project = config.project
 
     val label = project.objects.property(String::class.java).convention(name.capitalize())
 

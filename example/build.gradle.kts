@@ -22,12 +22,12 @@ config {
             }
             prop("envMode") {
                 value.set("dev")
-                enabled { value("infra") == "az"  }
+                enabled { otherValue("infra") == "az"  }
             }
             prop("aemInstancePassword") {
                 value.set("admin")
 
-                visible { value("infra") == "aws" }
+                visible { otherValue("infra") == "aws" }
             }
             prop("aemProxyPassword") {
                 value.set("admin")

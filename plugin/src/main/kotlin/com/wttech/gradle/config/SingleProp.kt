@@ -8,6 +8,14 @@ class SingleProp(group: Group, name: String): Prop<String>(group, name) {
 
     override fun value() = value.orNull
 
+    override fun value(v: Any?) {
+        value.set(v?.toString())
+    }
+
+    override fun valueBy(provider: () -> String?) {
+        value.set(project.provider(provider))
+    }
+
     fun int() = value()?.toInt()
 
     fun boolean() = value()?.toBoolean()

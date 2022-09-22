@@ -7,6 +7,8 @@ open class ConfigExtension(val project: Project) {
 
     val debugMode = project.objects.property(Boolean::class.java).convention(true)
 
+    fun fileManager() = FileManager(project)
+
     fun task(options: ConfigTask.() -> Unit) = task(TASK_DEFAULT, options)
 
     fun task(name: String, options: ConfigTask.() -> Unit) = project.tasks.register(name, ConfigTask::class.java, options)
