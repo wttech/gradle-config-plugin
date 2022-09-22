@@ -18,11 +18,13 @@ class Dialog(val config: Config) {
 
     val layoutDebug = config.config.debugMode.get()
 
-    val layoutConstraints = mutableListOf("fill").apply { if (layoutDebug) add("debug") }.joinToString(",")
+    fun layoutConstraints(vararg constraints: String) = constraints.toMutableList().apply {
+        if (layoutDebug) add("debug")
+    }.joinToString(",")
 
     private val dialog = JDialog().apply {
         title = "Config"
-        layout = MigLayout(layoutConstraints)
+        layout = MigLayout(layoutConstraints("fill"))
         isAlwaysOnTop = true
         isModal = true
         isResizable = true
@@ -104,9 +106,9 @@ class Dialog(val config: Config) {
         dialog.add(tabs, "grow, span, wrap")
 
         config.groups.get().forEach { group ->
-            val panel = JPanel(MigLayout("$layoutConstraints, insets 0")).also { tab ->
+            val panel = JPanel(MigLayout(layoutConstraints("fill", "insets 0"))).also { tab ->
                 group.props.get().forEach { prop ->
-                    tab.add(JPanel(MigLayout("$layoutConstraints, insets 5")).also { propPanel ->
+                    tab.add(JPanel(MigLayout(layoutConstraints("fill", "insets 5"))).also { propPanel ->
                         propPanel.add(JLabel(prop.label.get()), "wrap")
                         val propField = propField(prop)
                         when (propField) {
@@ -126,7 +128,7 @@ class Dialog(val config: Config) {
         dialog.add(this, "span, wrap")
     }
 
-    private val actionsPanel = JPanel(MigLayout(layoutConstraints)).apply {
+    private val actionsPanel = JPanel(MigLayout(layoutConstraints("fill"))).apply {
         add(applyButton, "align center")
         dialog.add(this, "span, growx, wrap")
     }
