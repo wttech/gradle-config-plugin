@@ -4,11 +4,13 @@ class SingleProp(group: Group, name: String): Prop<String>(group, name) {
 
     private val project = group.project
 
-    val prop = project.objects.property(String::class.java)
+    val value = project.objects.property(String::class.java)
 
-    override var value: String?
-        get() = prop.orNull
-        set(value) { prop.set(value) }
+    override fun value() = value.orNull
+
+    fun int() = value()?.toInt()
+
+    fun boolean() = value()?.toBoolean()
 
     val options = project.objects.listProperty(String::class.java).apply {
         set(listOf())
@@ -19,8 +21,4 @@ class SingleProp(group: Group, name: String): Prop<String>(group, name) {
     }
 
     fun options(vararg options: String) = options(options.asIterable())
-
-    fun int() = value?.toInt()
-
-    fun boolean() = value?.toBoolean()
 }

@@ -54,18 +54,18 @@ class Dialog(val config: Config, val onApply: () -> Unit) {
         is SingleProp -> {
             if (prop.options.get().isEmpty()) {
                 JTextField().also { field ->
-                    TextComponentConnector.connect(PropertyAdapter(prop, "value"), field);
+                    TextComponentConnector(prop.toAdapter(), field).updateTextComponent();
                 }
             } else {
-                val model = ComboBoxAdapter(prop.options.get(), PropertyAdapter(prop, "value"))
+                val model = ComboBoxAdapter(prop.options.get(), prop.toAdapter())
                 JComboBox(model)
             }
         }
         is ListProp -> {
             if (prop.options.get().isEmpty()) {
                 JTextArea().also { field ->
-                    field.text = prop.value?.joinToString("<br>")
-                    prop.prop.set(config.project.provider { field.text.split("<br>") })
+                    field.text = prop.value()?.joinToString("<br>")
+                    prop.value.set(config.project.provider { field.text.split("<br>") })
                 }
             } else {
                 TODO("multiple options selection is not yet implemented")
@@ -125,3 +125,29 @@ class Dialog(val config: Config, val onApply: () -> Unit) {
         }
     }
 }
+
+fun MapProp.toAdapter(): PropertyAdapter<Any> {
+    return PropertyAdapter(object {
+        var p: Map<String, Any?>?
+            get() = value.orNull
+            set(v) { value.set(v) }
+    }, "p")
+}
+
+fun SingleProp.toAdapter(): PropertyAdapter<Any> {
+    return PropertyAdapter(object {
+        var p: String?
+            get() = value.orNull
+            set(v) { value.set(v) }
+    }, "p")
+}
+
+fun ListProp.toAdapter(): PropertyAdapter<Any> {
+    return PropertyAdapter(object {
+        var p: List<String>?
+            get() = value.orNull
+            set(v) { value.set(v) }
+    }, "p")
+}
+
+
