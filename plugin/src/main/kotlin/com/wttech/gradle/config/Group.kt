@@ -1,10 +1,12 @@
 package com.wttech.gradle.config
 
+import com.wttech.gradle.config.util.capitalWords
+
 class Group(val config: Config, val name: String) {
 
     val project = config.project
 
-    val label = project.objects.property(String::class.java).convention(name.capitalize())
+    val label = project.objects.property(String::class.java).convention(name.capitalWords())
 
     val visible = project.objects.property(Boolean::class.java).convention(true)
 
@@ -42,7 +44,13 @@ class Group(val config: Config, val name: String) {
 
         return true
     }
-    override fun hashCode() = name.hashCode()
 
-    override fun toString(): String = "Group(name='$name', visible=${visible.get()})"
+    override fun toString(): String = "Group(name='$name', visible=${visible.get()}, enabled=${enabled.get()})"
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + (label.orNull?.hashCode() ?: 0)
+        result = 31 * result + (visible.orNull?.hashCode() ?: 0)
+        result = 31 * result + (enabled.orNull?.hashCode() ?: 0)
+        return result
+    }
 }

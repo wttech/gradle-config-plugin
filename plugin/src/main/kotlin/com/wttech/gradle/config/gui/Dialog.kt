@@ -141,18 +141,17 @@ class Dialog(val config: Config) {
         setLocation(x, y)
     }
 
-    private var groupsVisibleOld = -1
+    private var groupsStateOld = -1
 
     fun updateGroupTabs() {
-        val groupsVisible = config.groups.get().filter { it.visible.get() }
-        val groupsVisibleNew = groupsVisible.hashCode()
-        if (groupsVisibleOld != groupsVisibleNew) {
+        val groupsStateNew = config.groups.get().hashCode()
+        if (groupsStateOld != groupsStateNew) {
             tabPane.removeAll()
             groupTabs.filter { it.group.visible.get() }.forEachIndexed { index, it ->
                 tabPane.addTab(it.group.label.get(), it.tab)
-                tabPane.setEnabledAt(index, it.group.enabled.get()  )
+                tabPane.setEnabledAt(index, it.group.enabled.get())
             }
-            groupsVisibleOld = groupsVisibleNew
+            groupsStateOld = groupsStateNew
         }
     }
 

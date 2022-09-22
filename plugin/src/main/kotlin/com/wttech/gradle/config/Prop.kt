@@ -1,12 +1,14 @@
 package com.wttech.gradle.config
 
+import com.wttech.gradle.config.util.capitalWords
+
 abstract class Prop<V: Any>(val group: Group, val name: String) {
 
     private val project = group.project
 
     // CLI & GUI input
 
-    val label = project.objects.property(String::class.java).convention(name.capitalize())
+    val label = project.objects.property(String::class.java).convention(name.capitalWords())
 
     val description = project.objects.property(String::class.java)
 
@@ -34,5 +36,15 @@ abstract class Prop<V: Any>(val group: Group, val name: String) {
 
     fun otherValue(propName: String) = other(propName).value()
 
-    override fun toString() = "Prop(group=${group.name}, name=$name, value=${value()})"
+    override fun toString() = "Prop(group=${group.name}, name=$name, value=${value()}, visible=${visible.get()}, enabled=${enabled.get()})"
+
+    override fun hashCode(): Int {
+        var result = group.hashCode()
+        result = 31 * result + name.hashCode()
+        result = 31 * result + (label.orNull?.hashCode() ?: 0)
+        result = 31 * result + (description.orNull?.hashCode() ?: 0)
+        result = 31 * result + (visible.orNull?.hashCode() ?: 0)
+        result = 31 * result + (enabled.orNull?.hashCode() ?: 0)
+        return result
+    }
 }

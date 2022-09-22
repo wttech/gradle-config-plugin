@@ -12,10 +12,14 @@ config {
             prop("envType") {
                 options.set(listOf("afe_single", "aem_single", "aem_multi"))
             }
+            prop("test") {
+                value("abc")
+            }
         }
         group("aws_afe_single") {
             label.set("Environment")
             visible { name == "${value("infra")}_${value("envType")}" }
+            enabled { value("test") == "abc" }
 
             prop("env") {
                 value.set("kp")
