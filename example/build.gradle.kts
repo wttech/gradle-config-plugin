@@ -10,11 +10,11 @@ config {
                 options("aws", "gcp", "az")
             }
             prop("envType") {
-                value.set("afe_single2")
-                options.set(listOf())
+                options.set(listOf("afe_single", "aem_single", "aem_multi"))
             }
         }
         group("aws_afe_single") {
+            label.set("Environment")
             visible { name == "${value("infra")}_${value("envType")}" }
 
             prop("env") {

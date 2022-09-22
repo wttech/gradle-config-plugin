@@ -138,12 +138,15 @@ class Dialog(val config: Config) {
         setLocation(x, y)
     }
 
+    private var groupsVisibleOld = -1
+
     fun updateGroupTabs() {
-        tabPane.removeAll()
-        groupTabs.forEach { groupTab ->
-            if (groupTab.group.visible.get()) {
-                tabPane.addTab(groupTab.group.label.get(), groupTab.tab)
-            }
+        val groupsVisible = config.groups.get().filter { it.visible.get() }
+        val groupsVisibleNew = groupsVisible.hashCode()
+        if (groupsVisibleOld != groupsVisibleNew) {
+            tabPane.removeAll()
+            groupTabs.filter { it.group.visible.get() }.forEach { tabPane.addTab(it.group.label.get(), it.tab) }
+            groupsVisibleOld = groupsVisibleNew
         }
     }
 
@@ -154,12 +157,12 @@ class Dialog(val config: Config) {
         }
     }
 
-    fun render() {
+    fun render(initial: Boolean = false) {
         updateGroupTabs()
         updatePropPanels()
 
         dialog.pack()
-        dialog.centre()
+        if (initial) dialog.centre()
         dialog.isVisible = true
     }
 
@@ -174,7 +177,7 @@ class Dialog(val config: Config) {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
             val dialog = Dialog(config)
             UIManager.setLookAndFeel(laf)
-            dialog.render()
+            dialog.render(true)
         } catch (e: HeadlessException) {
             throw ConfigException("Config GUI dialog cannot be opened in headless mode!\n$TROUBLESHOOTING")
         } catch (e: Exception) {

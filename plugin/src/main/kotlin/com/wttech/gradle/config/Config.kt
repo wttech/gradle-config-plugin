@@ -4,7 +4,6 @@ import com.wttech.gradle.config.gui.Dialog
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
-import java.io.File
 
 open class Config : DefaultTask() {
 
@@ -24,21 +23,21 @@ open class Config : DefaultTask() {
     }
 
     @Internal
-    val outputFile = project.objects.fileProperty().apply {
-        set(project.layout.projectDirectory.file(".gradle/config/$name.yml"))
-    }
-
-    fun outputFile(path: String) {
-        outputFile.set(project.layout.projectDirectory.file(path))
+    val outputCacheFile = project.objects.fileProperty().apply {
+        set(project.layout.projectDirectory.file(".gradle/config/$name.cache.yml"))
     }
 
     @Internal
-    var outputAction: () -> Unit = { saveValuesAsJson() }
-
-    fun outputAction(action: () -> Unit) {
-        this.outputAction = action
+    val outputYmlFile = project.objects.fileProperty().apply {
+        set(project.layout.projectDirectory.file(".gradle/config/$name.yml"))
     }
 
+    @Internal
+    val outputJsonFile = project.objects.fileProperty().apply {
+        set(project.layout.projectDirectory.file(".gradle/config/$name.json"))
+    }
+
+    // TODO deal with loading in build/tasks in GAT
     @Internal
     val outputLoaded = project.objects.property(Boolean::class.java).apply {
         set(false)
@@ -68,6 +67,9 @@ open class Config : DefaultTask() {
         get() = props.associate { it.name to it.value() }
         set(vs) { vs.forEach { (k, v) -> findProp(k)?.value(v) } }
 
+    @get:Internal
+    val valuesCurrent: Map<String, Any?>
+        get() = props.filter { it.group.visible.get() && it.visible.get() }.associate { it.name to it.value() }
 
     @TaskAction
     fun process() {
@@ -100,9 +102,11 @@ open class Config : DefaultTask() {
     }
 
     private fun readValues() {
-        val file = outputFile.get().asFile
-        logger.lifecycle("Config '$name' is loading values from output file '$file'")
-        values = fileManager.readYml(file)
+        val file = outputCacheFile.get().asFile
+        if (file.exists()) {
+            logger.lifecycle("Config '$name' is loading values from output file '$file'")
+            values = fileManager.readYml(file)
+        }
     }
 
     private fun captureValues() {
@@ -122,21 +126,16 @@ open class Config : DefaultTask() {
     }
 
     private fun saveValues() {
-        saveValuesAsYml(outputFile.get().asFile)
-        outputAction()
-    }
+        val cache = outputCacheFile.asFile.get()
+        logger.lifecycle("Config '$name' is saving cached values to file '$cache'")
+        fileManager.writeYml(cache, values)
 
-    fun saveValuesAsYml() = saveValuesAsYml(outputFile.get().asFile)
+        val currentYml = outputYmlFile.asFile.get()
+        logger.lifecycle("Config '$name' is saving current values to file '$currentYml'")
+        fileManager.writeYml(currentYml, valuesCurrent)
 
-    fun saveValuesAsYml(file: File) {
-        logger.lifecycle("Config '$name' is outputting values to file '$file'")
-        fileManager.writeYml(file, values)
-    }
-
-    fun saveValuesAsJson() = saveValuesAsJson(outputFile.get().asFile.let { it.parentFile.resolve("${it.nameWithoutExtension}.json") })
-
-    fun saveValuesAsJson(file: File) {
-        logger.lifecycle("Config '$name' is outputting values to file '$file'")
-        fileManager.writeJson(file, values)
+        val currentJson = outputJsonFile.asFile.get()
+        logger.lifecycle("Config '$name' is saving current values to file '$currentJson'")
+        fileManager.writeJson(currentJson, valuesCurrent)
     }
 }

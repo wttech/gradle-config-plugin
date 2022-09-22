@@ -13,23 +13,19 @@ Defining configuration for Gradle via DSL with ability to provide values with mu
 - CLI non-interactive
 
 ```kotlin
-plugins {
-    id("com.wttech.config")
-}
-
 config {
     task {
         group("general") {
             prop("infra") {
                 value.set("aws")
-                options.set(listOf("aws", "gcp", "az"))
+                options("aws", "gcp", "az")
             }
             prop("envType") {
-                value.set("afe_single2")
-                options.set(listOf())
+                options.set(listOf("afe_single", "aem_single", "aem_multi"))
             }
         }
         group("aws_afe_single") {
+            label.set("Environment")
             visible { name == "${value("infra")}_${value("envType")}" }
 
             prop("env") {
@@ -37,12 +33,18 @@ config {
             }
             prop("envMode") {
                 value.set("dev")
+                enabled { otherValue("infra") == "az"  }
             }
             prop("aemInstancePassword") {
+                value.set("admin")
 
+                visible { otherValue("infra") == "aws" }
             }
             prop("aemProxyPassword") {
-
+                value.set("admin")
+            }
+            listProp("aemPackages") {
+                value.set(listOf("a", "b", "c"))
             }
         }
     }
