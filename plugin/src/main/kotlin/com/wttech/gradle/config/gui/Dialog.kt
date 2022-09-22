@@ -43,7 +43,10 @@ class Dialog(val config: Config, val onApply: () -> Unit) {
                 group.props.get().forEach { prop ->
                     tab.add(JPanel(MigLayout("$layoutConstraints, insets 5")).also { propPanel ->
                         propPanel.add(JLabel(prop.label.get()), "wrap")
-                        propPanel.add(propField(prop), " w 300::, growx, wrap")
+                        when (val propField = propField(prop)) {
+                            is JTextArea -> propPanel.add(propField, "w 300::, h 60::, growx, wrap")
+                            else -> propPanel.add(propField, "w 300::, growx, wrap")
+                        }
                     }, "growx, wrap")
                 }
             })
@@ -64,8 +67,7 @@ class Dialog(val config: Config, val onApply: () -> Unit) {
         is ListProp -> {
             if (prop.options.get().isEmpty()) {
                 JTextArea().also { field ->
-                    field.text = prop.value()?.joinToString("<br>")
-                    prop.value.set(config.project.provider { field.text.split("<br>") })
+                    TextComponentConnector(prop.toAdapter("\n"), field).updateTextComponent();
                 }
             } else {
                 TODO("multiple options selection is not yet implemented")
@@ -142,11 +144,11 @@ fun SingleProp.toAdapter(): PropertyAdapter<Any> {
     }, "p")
 }
 
-fun ListProp.toAdapter(): PropertyAdapter<Any> {
+fun ListProp.toAdapter(separator: String): PropertyAdapter<Any> {
     return PropertyAdapter(object {
-        var p: List<String>?
-            get() = value.orNull
-            set(v) { value.set(v) }
+        var p: String?
+            get() = value.orNull?.joinToString(separator)
+            set(v) { value.set(v?.split(separator)) }
     }, "p")
 }
 

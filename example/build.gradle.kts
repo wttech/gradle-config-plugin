@@ -7,7 +7,7 @@ config {
         group("general") {
             prop("infra") {
                 value.set("aws")
-                options.set(listOf("aws", "gcp", "az"))
+                options("aws", "gcp", "az")
             }
             prop("envType") {
                 value.set("afe_single2")
@@ -29,6 +29,9 @@ config {
             }
             prop("aemProxyPassword") {
                 value.set("admin")
+            }
+            listProp("aemPackages") {
+                value.set(listOf("a", "b", "c"))
             }
         }
     }
