@@ -30,8 +30,6 @@ abstract class Prop<V: Any>(val group: Group, val name: String) {
 
     abstract fun value(v: Any?)
 
-    abstract fun valueBy(provider: () -> V?)
-
     fun other(propName: String) = group.config.prop(propName)
 
     fun otherValue(propName: String) = other(propName).value()

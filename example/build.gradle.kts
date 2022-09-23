@@ -6,7 +6,7 @@ config {
     task {
         group("general") {
             prop("infra") {
-                value.set("aws")
+                value("aws")
                 options("aws", "gcp", "az")
             }
             prop("envType") {
@@ -30,9 +30,7 @@ config {
                 enabled { otherValue("env") == "kp" }
             }
             prop("aemInstancePassword") {
-                // TODO does not work
-                valueBy {
-                    println("VALUE BY CALLED")
+                mutate {
                     otherValue("env")?.toString()
                 }
             }

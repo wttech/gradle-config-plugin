@@ -54,15 +54,15 @@ class Dialog(val config: Config) {
             if (prop.options.get().isEmpty()) {
                 JTextField().apply {
                     Bindings.bind(this, object : PropValueModel(prop) {
-                        override fun getValue() = prop.value.orNull
-                        override fun updateValue(v: Any?) { prop.value.set(v?.toString()) /* TODO breaks dynamic value assignment */  }
+                        override fun getValue() = prop.value()
+                        override fun updateValue(v: Any?) { prop.value(v?.toString()) }
                     })
                 }
             } else {
                 JComboBox<String>().apply {
                     val valueModel = object : PropValueModel(prop) {
-                        override fun getValue() = prop.value.orNull
-                        override fun updateValue(v: Any?) { prop.value.set(v?.toString()) }
+                        override fun getValue() = prop.value()
+                        override fun updateValue(v: Any?) { prop.value(v?.toString()) }
                     }
                     val optionsModel = object : PropValueModel(prop) {
                         override fun getValue() = prop.options.orNull ?: listOf()
@@ -75,8 +75,8 @@ class Dialog(val config: Config) {
             if (prop.options.get().isEmpty()) {
                 JTextArea().apply {
                     Bindings.bind(this, object : PropValueModel(prop) {
-                        override fun getValue() = prop.value.orNull?.joinToString("\n")
-                        override fun updateValue(v: Any?) { prop.value.set(v?.toString()?.split("\n")) }
+                        override fun getValue() = prop.value()?.joinToString("\n")
+                        override fun updateValue(v: Any?) { prop.value(v?.toString()?.split("\n")) }
                     })
                 }
             } else {
@@ -86,9 +86,9 @@ class Dialog(val config: Config) {
         is MapProp -> {
             JTextArea().apply {
                 val valueModel = object : PropValueModel(prop) {
-                    override fun getValue() = prop.value.orNull?.map { "${it.key}=${it.value}" }?.joinToString("\n")
+                    override fun getValue() = prop.value()?.map { "${it.key}=${it.value}" }?.joinToString("\n")
                     override fun updateValue(v: Any?) {
-                        prop.value.set(v?.toString()?.split("\n")?.associate {
+                        prop.value(v?.toString()?.split("\n")?.associate {
                             it.substringBefore("=") to it.substringAfter("=")
                         })
                     }
@@ -170,11 +170,25 @@ class Dialog(val config: Config) {
             panel.field.isEnabled = panel.data.enabled.get()
 
             if (panel.field is JTextField) {
-                // TODO ...
-                println("update prop = ${panel.data.name}, field = ${panel.field.text}, data = ${panel.data.value()}")
                 if (panel.field.text != panel.data.value()) {
-                    panel.field.text = panel.data.value()?.toString()
+                    try {
+                        panel.field.text = panel.data.value()?.toString()
+                    } catch (e: Exception) {
+                        if (e.message != "Attempt to mutate in notification") {
+                            throw e
+                        }
+                    }
                 }
+            }
+        }
+    }
+
+    private fun tryMutate(action: () -> Unit) {
+        try {
+            action()
+        } catch (e: Exception) {
+            if (e.message != "Attempt to mutate in notification") {
+                throw e
             }
         }
     }

@@ -1,6 +1,8 @@
 package com.wttech.gradle.config
 
-class SingleProp(group: Group, name: String): Prop<String>(group, name) {
+typealias SingleType = String
+
+class SingleProp(group: Group, name: String): Prop<SingleType>(group, name) {
 
     private val project = group.project
 
@@ -13,17 +15,19 @@ class SingleProp(group: Group, name: String): Prop<String>(group, name) {
     }
     fun options(vararg options: String) = options(options.asIterable())
 
-    @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
-    val value = project.objects.property(String::class.java).convention(options.map { it.firstOrNull() })
+    private var mutator: (SingleType?) -> SingleType? = { it }
 
-    override fun value() = value.orNull
+    fun mutate(mutator: (value: SingleType?) -> SingleType?) {
+        this.mutator = mutator
+    }
+
+    @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
+    private val value = project.objects.property(String::class.java).convention(options.map { it.firstOrNull() })
+
+    override fun value() = mutator(value.orNull)
 
     override fun value(v: Any?) {
         value.set(v?.toString())
-    }
-
-    override fun valueBy(provider: () -> String?) {
-        value.set(project.provider(provider))
     }
 
     fun int() = value()?.toInt()
