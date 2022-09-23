@@ -1,14 +1,14 @@
 package com.wttech.gradle.config
 
-import com.wttech.gradle.config.util.capitalWords
-
-abstract class Prop<V: Any>(val group: Group, val name: String) {
+abstract class Prop(val group: Group, val name: String) {
 
     private val project = group.project
 
     // CLI & GUI input
 
-    val label = project.objects.property(String::class.java).convention(name.capitalWords())
+    val label = project.objects.property(String::class.java).apply {
+        convention(project.provider { group.config.label(name) })
+    }
 
     val description = project.objects.property(String::class.java)
 
@@ -26,13 +26,32 @@ abstract class Prop<V: Any>(val group: Group, val name: String) {
         enabled.set(project.provider { predicate() })
     }
 
-    abstract fun value(): V?
+
+    abstract fun value(): Any?
 
     abstract fun value(v: Any?)
 
+    val singleValue: String? get() = when (this) {
+        is SingleProp -> value()
+        else -> throw ConfigException("Config prop '$name' is not a single!")
+    }
+    val listValue: List<String?>? get() = when (this) {
+        is ListProp -> value()
+        else -> throw ConfigException("Config prop '$name' is not a list!")
+    }
+
+    val mapValue: Map<String, Any?>? get() = when (this) {
+        is MapProp -> value()
+        else -> throw ConfigException("Config prop '$name' is not a map!")
+    }
+
     fun other(propName: String) = group.config.prop(propName)
 
-    fun otherValue(propName: String) = other(propName).value()
+    fun otherValue(propName: String) = other(propName).singleValue
+
+    fun otherListValue(propName: String) = other(propName).listValue
+
+    fun otherMapValue(propName: String) = other(propName).mapValue
 
     override fun toString() = "Prop(group=${group.name}, name=$name, value=${value()}, visible=${visible.get()}, enabled=${enabled.get()})"
 

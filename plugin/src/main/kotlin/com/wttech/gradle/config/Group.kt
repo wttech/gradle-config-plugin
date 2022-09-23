@@ -1,12 +1,12 @@
 package com.wttech.gradle.config
 
-import com.wttech.gradle.config.util.capitalWords
-
 class Group(val config: Config, val name: String) {
 
     val project = config.project
 
-    val label = project.objects.property(String::class.java).convention(name.capitalWords())
+    val label = project.objects.property(String::class.java).apply {
+        convention(project.provider { config.label(name) })
+    }
 
     val visible = project.objects.property(Boolean::class.java).convention(true)
 
@@ -20,7 +20,7 @@ class Group(val config: Config, val name: String) {
         enabled.set(project.provider { predicate() })
     }
 
-    val props = project.objects.listProperty(Prop::class.java)
+    val props = project.objects.listProperty<Prop>(Prop::class.java)
 
     fun prop(name: String, options: SingleProp.() -> Unit) {
         props.add(project.provider { SingleProp(this, name).apply(options) })

@@ -12,9 +12,9 @@ open class ConfigExtension(val project: Project) {
 
     fun fileManager() = FileManager(project)
 
-    fun task(options: ConfigTask.() -> Unit) = task(TASK_DEFAULT, options)
+    fun define(options: ConfigTask.() -> Unit) = define(TASK_DEFAULT, options)
 
-    fun task(name: String, options: ConfigTask.() -> Unit) = project.tasks.register(name, ConfigTask::class.java, options)
+    fun define(name: String, options: ConfigTask.() -> Unit) = project.tasks.register(name, ConfigTask::class.java, options)
 
     companion object {
         const val NAME = "config"

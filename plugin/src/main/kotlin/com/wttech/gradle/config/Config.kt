@@ -1,6 +1,8 @@
 package com.wttech.gradle.config
 
 import com.wttech.gradle.config.gui.Dialog
+import com.wttech.gradle.config.util.capitalLetter
+import com.wttech.gradle.config.util.capitalWords
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
@@ -57,7 +59,7 @@ open class Config : DefaultTask() {
 
     @get:Internal
     @Suppress("unchecked_cast")
-    val props get() = groups.get().flatMap { it.props.get() } as List<Prop<Any>>
+    val props get() = groups.get().flatMap { it.props.get() } as List<Prop>
 
     fun findProp(propName: String) = props.firstOrNull { it.name == propName }
 
@@ -66,22 +68,46 @@ open class Config : DefaultTask() {
     fun prop(propName: String) = findProp(propName)
         ?: throw ConfigException("Prop '$propName' is not defined!")
 
-    fun value(propName: String) = prop(propName).value()
-
     @get:Internal
     var values: Map<String, Any?>
         get() = props.associate { it.name to it.value() }
         set(vs) { vs.forEach { (k, v) -> findProp(k)?.value(v) } }
 
-    private var valueFilter: Prop<Any>.() -> Boolean = { group.visible.get() && visible.get() }
+    private var valueFilter: Prop.() -> Boolean = { group.visible.get() && visible.get() }
 
-    fun valueFilter(predicate: Prop<Any>.() -> Boolean) {
+    fun valueSaveAll() = valueFilter { true }
+
+    fun valueSaveVisible() = valueFilter { group.visible.get() && visible.get() }
+
+    fun valueSaveEnabled() = valueFilter { group.enabled.get() && enabled.get() }
+
+    fun valueSaveEnabledAndVisible() = valueFilter { group.visible.get() && visible.get() }
+
+    fun valueFilter(predicate: Prop.() -> Boolean) {
         this.valueFilter = predicate
     }
 
     @get:Internal
-    val valuesFiltered: Map<String, Any?>
+    val valuesSaved: Map<String, Any?>
         get() = props.filter(valueFilter).associate { it.name to it.value() }
+
+    fun value(propName: String) = prop(propName).singleValue
+
+    fun listValue(propName: String) = prop(propName).listValue
+
+    fun mapValue(propName: String) = prop(propName).mapValue
+
+    @Internal
+    val labelDict = project.objects.mapProperty(String::class.java, String::class.java).apply {
+        set(mapOf())
+    }
+    fun labelAbbrs(abbrs: Iterable<String>) {
+        labelDict.putAll(abbrs.associate { it.capitalLetter() to it.uppercase() })
+    }
+
+    fun labelAbbrs(vararg abbrs: String) = labelAbbrs(abbrs.asIterable())
+
+    fun label(text: String): String = labelDict.get().entries.fold(text.capitalWords()) { n, (s, r) -> n.replace(s, r) }
 
     @TaskAction
     fun process() {
@@ -143,10 +169,10 @@ open class Config : DefaultTask() {
 
         val ymlFiltered = outputYmlFile.asFile.get()
         logger.lifecycle("Config '$name' is saving filtered values to file '$ymlFiltered'")
-        fileManager.writeYml(ymlFiltered, valuesFiltered)
+        fileManager.writeYml(ymlFiltered, valuesSaved)
 
         val jsonFiltered = outputJsonFile.asFile.get()
         logger.lifecycle("Config '$name' is saving filtered values to file '$jsonFiltered'")
-        fileManager.writeJson(jsonFiltered, valuesFiltered)
+        fileManager.writeJson(jsonFiltered, valuesSaved)
     }
 }

@@ -2,7 +2,7 @@ package com.wttech.gradle.config
 
 typealias SingleType = String
 
-class SingleProp(group: Group, name: String): Prop<SingleType>(group, name) {
+class SingleProp(group: Group, name: String): Prop(group, name) {
 
     private val project = group.project
 
@@ -15,16 +15,16 @@ class SingleProp(group: Group, name: String): Prop<SingleType>(group, name) {
     }
     fun options(vararg options: String) = options(options.asIterable())
 
-    private var mutator: (SingleType?) -> SingleType? = { it }
+    private var valueMutator: (SingleType?) -> SingleType? = { it }
 
-    fun mutate(mutator: (value: SingleType?) -> SingleType?) {
-        this.mutator = mutator
+    fun valueDynamic(mutator: (value: SingleType?) -> SingleType?) {
+        this.valueMutator = mutator
     }
 
     @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
     private val value = project.objects.property(String::class.java).convention(options.map { it.firstOrNull() })
 
-    override fun value() = mutator(value.orNull)
+    override fun value() = valueMutator(value.orNull)
 
     override fun value(v: Any?) {
         value.set(v?.toString())

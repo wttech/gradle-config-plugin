@@ -3,20 +3,22 @@ plugins {
 }
 
 config {
-    task {
+    define {
+        valueSaveVisible()
+        labelAbbrs("aem")
+
         group("general") {
             prop("infra") {
                 value("aws")
                 options("aws", "gcp", "az")
             }
             prop("envType") {
-                options.set(listOf("afe_single", "aem_single", "aem_multi"))
+                options("afe_single", "aem_single", "aem_multi")
             }
             prop("test") {
                 value("abc")
             }
         }
-
 
         group("aws_afe_single") {
             label.set("Remote environment")
@@ -30,15 +32,13 @@ config {
                 enabled { otherValue("env") == "kp" }
             }
             prop("aemInstancePassword") {
-                mutate {
-                    otherValue("env")?.toString()
-                }
+                valueDynamic { "${otherValue("env")}-pass" }
             }
             prop("aemProxyPassword") {
                 value("admin")
             }
             listProp("aemPackages") {
-                value.set(listOf("a", "b", "c"))
+                values("a", "b", "c")
             }
         }
     }

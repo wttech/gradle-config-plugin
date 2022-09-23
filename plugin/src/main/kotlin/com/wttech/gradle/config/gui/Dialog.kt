@@ -37,7 +37,7 @@ class Dialog(val config: Config) {
         })
     }
 
-    private abstract inner class PropValueModel(val prop: Prop<*>) : AbstractValueModel() {
+    private abstract inner class PropValueModel : AbstractValueModel() {
 
         override fun setValue(v: Any?) {
             updateValue(v)
@@ -46,25 +46,25 @@ class Dialog(val config: Config) {
         open fun updateValue(v: Any?) {}
     }
 
-    class PropPanel(val data: Prop<*>, val container: JPanel, val field: JComponent)
+    class PropPanel(val data: Prop, val container: JPanel, val field: JComponent)
     private val propPanels = mutableListOf<PropPanel>()
 
-    private fun propField(prop: Prop<out Any>): JComponent = when (prop) {
+    private fun propField(prop: Prop): JComponent = when (prop) {
         is SingleProp -> {
             if (prop.options.get().isEmpty()) {
                 JTextField().apply {
-                    Bindings.bind(this, object : PropValueModel(prop) {
-                        override fun getValue() = prop.value()
+                    Bindings.bind(this, object : PropValueModel() {
+                        override fun getValue() = prop.singleValue
                         override fun updateValue(v: Any?) { prop.value(v?.toString()) }
                     })
                 }
             } else {
                 JComboBox<String>().apply {
-                    val valueModel = object : PropValueModel(prop) {
-                        override fun getValue() = prop.value()
+                    val valueModel = object : PropValueModel() {
+                        override fun getValue() = prop.singleValue
                         override fun updateValue(v: Any?) { prop.value(v?.toString()) }
                     }
-                    val optionsModel = object : PropValueModel(prop) {
+                    val optionsModel = object : PropValueModel() {
                         override fun getValue() = prop.options.orNull ?: listOf()
                     }
                     Bindings.bind<String>(this, SelectionInList(optionsModel, valueModel))
@@ -74,8 +74,8 @@ class Dialog(val config: Config) {
         is ListProp -> {
             if (prop.options.get().isEmpty()) {
                 JTextArea().apply {
-                    Bindings.bind(this, object : PropValueModel(prop) {
-                        override fun getValue() = prop.value()?.joinToString("\n")
+                    Bindings.bind(this, object : PropValueModel() {
+                        override fun getValue() = prop.listValue?.joinToString("\n")
                         override fun updateValue(v: Any?) { prop.value(v?.toString()?.split("\n")) }
                     })
                 }
@@ -85,8 +85,8 @@ class Dialog(val config: Config) {
         }
         is MapProp -> {
             JTextArea().apply {
-                val valueModel = object : PropValueModel(prop) {
-                    override fun getValue() = prop.value()?.map { "${it.key}=${it.value}" }?.joinToString("\n")
+                val valueModel = object : PropValueModel() {
+                    override fun getValue() = prop.mapValue?.map { "${it.key}=${it.value}" }?.joinToString("\n")
                     override fun updateValue(v: Any?) {
                         prop.value(v?.toString()?.split("\n")?.associate {
                             it.substringBefore("=") to it.substringAfter("=")
@@ -107,7 +107,7 @@ class Dialog(val config: Config) {
 
         config.groups.get().forEach { group ->
             val panel = JPanel(MigLayout(layoutConstraints("fillx", "insets 5"))).also { tab ->
-                group.props.get().forEach { prop ->
+                group.props.get().forEach { prop: Prop ->
                     tab.add(JPanel(MigLayout(layoutConstraints("fill", "insets 5"))).also { propPanel ->
                         propPanel.add(JLabel(prop.label.get()), "wrap")
                         val propField = propField(prop)
@@ -169,11 +169,17 @@ class Dialog(val config: Config) {
             panel.container.isVisible = panel.data.visible.get()
             panel.field.isEnabled = panel.data.enabled.get()
 
-            if (panel.field is JTextField && panel.field.text != panel.data.value()) {
-                tryMutate { panel.field.text = panel.data.value()?.toString() }
-            } else if (panel.field is JTextArea && panel.field.text != panel.data.value()) {
-                val textareaValue = (panel.data.value() as List<String>)?.joinToString("\n")
-                if (panel.field.text != textareaValue) { tryMutate { panel.field.text = textareaValue } }
+            // fix two-way syncing for text field and area (combo works fine)
+            val normalizedValue by lazy {
+                when (panel.data) {
+                    is ListProp -> panel.data.value()?.joinToString("\n")
+                    is MapProp -> panel.data.value()?.map { "${it.key}=${it.value}" }?.joinToString("\n")
+                    else -> panel.data.value()?.toString()
+                }
+            }
+            when {
+                panel.field is JTextField && panel.field.text != normalizedValue -> tryMutate { panel.field.text = normalizedValue }
+                panel.field is JTextArea && panel.field.text != normalizedValue -> tryMutate { panel.field.text = normalizedValue }
             }
         }
     }
@@ -182,9 +188,7 @@ class Dialog(val config: Config) {
         try {
             action()
         } catch (e: Exception) {
-            if (e.message != "Attempt to mutate in notification") {
-                throw e
-            }
+            if (e.message != "Attempt to mutate in notification") throw e
         }
     }
 
