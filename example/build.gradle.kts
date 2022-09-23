@@ -53,7 +53,9 @@ config {
         }
         group("test") {
             prop("percyToken")
-            prop("percyEnabled")
+            prop("percyEnabled") {
+                checkbox()
+            }
         }
     }
 }

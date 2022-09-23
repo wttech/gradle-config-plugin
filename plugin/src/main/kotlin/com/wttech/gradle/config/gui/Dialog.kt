@@ -59,15 +59,27 @@ class Dialog(val config: Config) {
                     })
                 }
             } else {
-                JComboBox<String>().apply {
-                    val valueModel = object : PropValueModel() {
-                        override fun getValue() = prop.single.value()
-                        override fun updateValue(v: Any?) { prop.value(v?.toString()) }
+                if (prop.optionsStyle.get() == SingleProp.OptionsStyle.SELECT) {
+                    JComboBox<String>().apply {
+                        val valueModel = object : PropValueModel() {
+                            override fun getValue() = prop.single.value()
+                            override fun updateValue(v: Any?) { prop.value(v?.toString()) }
+                        }
+                        val optionsModel = object : PropValueModel() {
+                            override fun getValue() = prop.options.orNull ?: listOf()
+                        }
+                        Bindings.bind<String>(this, SelectionInList(optionsModel, valueModel))
                     }
-                    val optionsModel = object : PropValueModel() {
-                        override fun getValue() = prop.options.orNull ?: listOf()
+                } else if (prop.optionsStyle.get() == SingleProp.OptionsStyle.CHECKBOX) {
+                    JCheckBox().apply {
+                        val valueModel = object : PropValueModel() {
+                            override fun getValue() = prop.single.boolean()
+                            override fun updateValue(v: Any?) { prop.value(v?.toString()?.toBoolean()) }
+                        }
+                        Bindings.bind(this, valueModel)
                     }
-                    Bindings.bind<String>(this, SelectionInList(optionsModel, valueModel))
+                } else {
+                    throw ConfigException("Config prop '${prop.name}' is using unsupported options style!")
                 }
             }
         }
