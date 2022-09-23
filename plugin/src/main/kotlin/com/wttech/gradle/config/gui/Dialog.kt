@@ -54,14 +54,14 @@ class Dialog(val config: Config) {
             if (prop.options.get().isEmpty()) {
                 JTextField().apply {
                     Bindings.bind(this, object : PropValueModel() {
-                        override fun getValue() = prop.singleValue
+                        override fun getValue() = prop.single.value()
                         override fun updateValue(v: Any?) { prop.value(v?.toString()) }
                     })
                 }
             } else {
                 JComboBox<String>().apply {
                     val valueModel = object : PropValueModel() {
-                        override fun getValue() = prop.singleValue
+                        override fun getValue() = prop.single.value()
                         override fun updateValue(v: Any?) { prop.value(v?.toString()) }
                     }
                     val optionsModel = object : PropValueModel() {
@@ -75,7 +75,7 @@ class Dialog(val config: Config) {
             if (prop.options.get().isEmpty()) {
                 JTextArea().apply {
                     Bindings.bind(this, object : PropValueModel() {
-                        override fun getValue() = prop.listValue?.joinToString("\n")
+                        override fun getValue() = prop.list.value()?.joinToString("\n")
                         override fun updateValue(v: Any?) { prop.value(v?.toString()?.split("\n")) }
                     })
                 }
@@ -86,7 +86,7 @@ class Dialog(val config: Config) {
         is MapProp -> {
             JTextArea().apply {
                 val valueModel = object : PropValueModel() {
-                    override fun getValue() = prop.mapValue?.map { "${it.key}=${it.value}" }?.joinToString("\n")
+                    override fun getValue() = prop.map.value()?.map { "${it.key}=${it.value}" }?.joinToString("\n")
                     override fun updateValue(v: Any?) {
                         prop.value(v?.toString()?.split("\n")?.associate {
                             it.substringBefore("=") to it.substringAfter("=")

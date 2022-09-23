@@ -5,7 +5,11 @@ class Group(val config: Config, val name: String) {
     val project = config.project
 
     val label = project.objects.property(String::class.java).apply {
-        convention(project.provider { config.label(name) })
+        convention(project.provider { config.composeLabel(name) })
+    }
+
+    fun label(text: String) {
+        label.set(text)
     }
 
     val visible = project.objects.property(Boolean::class.java).convention(true)
@@ -22,15 +26,15 @@ class Group(val config: Config, val name: String) {
 
     val props = project.objects.listProperty<Prop>(Prop::class.java)
 
-    fun prop(name: String, options: SingleProp.() -> Unit) {
+    fun prop(name: String, options: SingleProp.() -> Unit = {}) {
         props.add(project.provider { SingleProp(this, name).apply(options) })
     }
 
-    fun listProp(name: String, options: ListProp.() -> Unit) {
+    fun listProp(name: String, options: ListProp.() -> Unit = {}) {
         props.add(project.provider { ListProp(this, name).apply(options) })
     }
 
-    fun mapProp(name: String, options: MapProp.() -> Unit) {
+    fun mapProp(name: String, options: MapProp.() -> Unit = {}) {
         props.add(project.provider { MapProp(this, name).apply(options) })
     }
 

@@ -7,10 +7,18 @@ abstract class Prop(val group: Group, val name: String) {
     // CLI & GUI input
 
     val label = project.objects.property(String::class.java).apply {
-        convention(project.provider { group.config.label(name) })
+        convention(project.provider { group.config.composeLabel(name) })
+    }
+
+    fun label(text: String) {
+        label.set(text)
     }
 
     val description = project.objects.property(String::class.java)
+
+    fun description(text: String) {
+        description.set(text)
+    }
 
     // GUI input only
 
@@ -31,27 +39,33 @@ abstract class Prop(val group: Group, val name: String) {
 
     abstract fun value(v: Any?)
 
-    val singleValue: String? get() = when (this) {
-        is SingleProp -> value()
+    val single: SingleProp get() = when (this) {
+        is SingleProp -> this
         else -> throw ConfigException("Config prop '$name' is not a single!")
     }
-    val listValue: List<String?>? get() = when (this) {
-        is ListProp -> value()
+    val list: ListProp get() = when (this) {
+        is ListProp -> this
         else -> throw ConfigException("Config prop '$name' is not a list!")
     }
 
-    val mapValue: Map<String, Any?>? get() = when (this) {
-        is MapProp -> value()
+    val map: MapProp get() = when (this) {
+        is MapProp -> this
         else -> throw ConfigException("Config prop '$name' is not a map!")
     }
 
-    fun other(propName: String) = group.config.prop(propName)
+    val singleValue get() = single.value()
 
-    fun otherValue(propName: String) = other(propName).singleValue
+    val listValue get() = list.value()
 
-    fun otherListValue(propName: String) = other(propName).listValue
+    val mapValue get() = map.value()
 
-    fun otherMapValue(propName: String) = other(propName).mapValue
+    fun other(propName: String) = group.config.getProp(propName)
+
+    fun otherValue(propName: String) = other(propName).single.value()
+
+    fun otherListValue(propName: String) = other(propName).list.value()
+
+    fun otherMapValue(propName: String) = other(propName).map.value()
 
     override fun toString() = "Prop(group=${group.name}, name=$name, value=${value()}, visible=${visible.get()}, enabled=${enabled.get()})"
 

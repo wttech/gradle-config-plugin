@@ -30,8 +30,8 @@ open class Config : DefaultTask() {
     }
 
     @Internal
-    val outputCacheFile = project.objects.fileProperty().apply {
-        set(outputDir.map { it.file("$name.cache.yml")})
+    val outputCapturedFile = project.objects.fileProperty().apply {
+        set(outputDir.map { it.file("$name.captured.yml")})
     }
 
     @Internal
@@ -65,7 +65,7 @@ open class Config : DefaultTask() {
 
     fun hasProp(propName: String) = findProp(propName) != null
 
-    fun prop(propName: String) = findProp(propName)
+    fun getProp(propName: String) = findProp(propName)
         ?: throw ConfigException("Prop '$propName' is not defined!")
 
     @get:Internal
@@ -91,11 +91,11 @@ open class Config : DefaultTask() {
     val valuesSaved: Map<String, Any?>
         get() = props.filter(valueFilter).associate { it.name to it.value() }
 
-    fun value(propName: String) = prop(propName).singleValue
+    fun value(propName: String) = getProp(propName).single.value()
 
-    fun listValue(propName: String) = prop(propName).listValue
+    fun listValue(propName: String) = getProp(propName).list.value()
 
-    fun mapValue(propName: String) = prop(propName).mapValue
+    fun mapValue(propName: String) = getProp(propName).map.value()
 
     @Internal
     val labelDict = project.objects.mapProperty(String::class.java, String::class.java).apply {
@@ -107,7 +107,7 @@ open class Config : DefaultTask() {
 
     fun labelAbbrs(vararg abbrs: String) = labelAbbrs(abbrs.asIterable())
 
-    fun label(text: String): String = labelDict.get().entries.fold(text.capitalWords()) { n, (s, r) -> n.replace(s, r) }
+    fun composeLabel(text: String): String = labelDict.get().entries.fold(text.capitalWords()) { n, (s, r) -> n.replace(s, r) }
 
     @TaskAction
     fun process() {
@@ -139,7 +139,7 @@ open class Config : DefaultTask() {
     }
 
     private fun readValues() {
-        val file = outputCacheFile.get().asFile
+        val file = outputCapturedFile.get().asFile
         if (file.exists()) {
             logger.lifecycle("Config '$name' is loading values from output file '$file'")
             values = fileManager.readYml(file)
@@ -163,7 +163,7 @@ open class Config : DefaultTask() {
     }
 
     private fun saveValues() {
-        val ymlCached = outputCacheFile.asFile.get()
+        val ymlCached = outputCapturedFile.asFile.get()
         logger.lifecycle("Config '$name' is saving cached values to file '$ymlCached'")
         fileManager.writeYml(ymlCached, values)
 

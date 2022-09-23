@@ -15,6 +15,20 @@ class SingleProp(group: Group, name: String): Prop(group, name) {
     }
     fun options(vararg options: String) = options(options.asIterable())
 
+    val optionsStyle = project.objects.property(OptionsStyle::class.java).convention(OptionsStyle.SELECT)
+
+    fun checkbox() {
+        optionsStyle.set(OptionsStyle.CHECKBOX)
+    }
+
+    fun select() {
+        optionsStyle.set(OptionsStyle.SELECT)
+    }
+    enum class OptionsStyle {
+        CHECKBOX,
+        SELECT
+    }
+
     private var valueMutator: (SingleType?) -> SingleType? = { it }
 
     fun valueDynamic(mutator: (value: SingleType?) -> SingleType?) {
