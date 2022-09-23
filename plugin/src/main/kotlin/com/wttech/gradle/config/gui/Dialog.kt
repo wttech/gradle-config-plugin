@@ -169,16 +169,11 @@ class Dialog(val config: Config) {
             panel.container.isVisible = panel.data.visible.get()
             panel.field.isEnabled = panel.data.enabled.get()
 
-            if (panel.field is JTextField) {
-                if (panel.field.text != panel.data.value()) {
-                    try {
-                        panel.field.text = panel.data.value()?.toString()
-                    } catch (e: Exception) {
-                        if (e.message != "Attempt to mutate in notification") {
-                            throw e
-                        }
-                    }
-                }
+            if (panel.field is JTextField && panel.field.text != panel.data.value()) {
+                tryMutate { panel.field.text = panel.data.value()?.toString() }
+            } else if (panel.field is JTextArea && panel.field.text != panel.data.value()) {
+                val textareaValue = (panel.data.value() as List<String>)?.joinToString("\n")
+                if (panel.field.text != textareaValue) { tryMutate { panel.field.text = textareaValue } }
             }
         }
     }
