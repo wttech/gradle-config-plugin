@@ -40,7 +40,6 @@ class Dialog(val config: Config) {
     private abstract inner class PropValueModel(val prop: Prop<*>) : AbstractValueModel() {
 
         override fun setValue(v: Any?) {
-            println("sv of $prop")
             updateValue(v)
             render()
         }
@@ -56,7 +55,7 @@ class Dialog(val config: Config) {
                 JTextField().apply {
                     Bindings.bind(this, object : PropValueModel(prop) {
                         override fun getValue() = prop.value.orNull
-                        override fun updateValue(v: Any?) { prop.value.set(v?.toString()) }
+                        override fun updateValue(v: Any?) { prop.value.set(v?.toString()) /* TODO breaks dynamic value assignment */  }
                     })
                 }
             } else {
