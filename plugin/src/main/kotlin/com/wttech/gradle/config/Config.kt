@@ -29,17 +29,17 @@ open class Config : DefaultTask() {
 
     @Internal
     val outputCacheFile = project.objects.fileProperty().apply {
-        set(outputDir.map { it.file(".gradle/config/$name.cache.yml")})
+        set(outputDir.map { it.file("$name.cache.yml")})
     }
 
     @Internal
     val outputYmlFile = project.objects.fileProperty().apply {
-        set(outputDir.map { it.file(".gradle/config/$name.yml")})
+        set(outputDir.map { it.file("$name.yml")})
     }
 
     @Internal
     val outputJsonFile = project.objects.fileProperty().apply {
-        set(outputDir.map { it.file(".gradle/config/$name.json")})
+        set(outputDir.map { it.file("$name.json")})
     }
 
     // TODO deal with loading in build/tasks in GAT
@@ -87,7 +87,7 @@ open class Config : DefaultTask() {
     fun process() {
         lockDefinitions()
         printDefinitions()
-        readValues()
+        // TODO readValues()
         captureValues()
         printValues()
         saveValues()

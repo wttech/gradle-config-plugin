@@ -16,25 +16,28 @@ config {
                 value("abc")
             }
         }
+
+
         group("aws_afe_single") {
-            label.set("Environment")
+            label.set("Remote environment")
             visible { name == "${value("infra")}_${value("envType")}" }
-            enabled { value("test") == "abc" }
 
             prop("env") {
-                value.set("kp")
+                value("kp")
             }
             prop("envMode") {
-                value.set("dev")
-                enabled { otherValue("infra") == "az"  }
+                options("dev", "stg", "prod")
+                enabled { otherValue("env") == "kp" }
             }
             prop("aemInstancePassword") {
-                value.set("admin")
-
-                visible { otherValue("infra") == "aws" }
+                // TODO does not work
+                valueBy {
+                    println("VALUE BY CALLED")
+                    otherValue("env")?.toString()
+                }
             }
             prop("aemProxyPassword") {
-                value.set("admin")
+                value("admin")
             }
             listProp("aemPackages") {
                 value.set(listOf("a", "b", "c"))

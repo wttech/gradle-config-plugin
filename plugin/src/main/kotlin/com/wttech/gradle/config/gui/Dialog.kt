@@ -37,8 +37,10 @@ class Dialog(val config: Config) {
         })
     }
 
-    private abstract inner class PropValueModel : AbstractValueModel() {
+    private abstract inner class PropValueModel(val prop: Prop<*>) : AbstractValueModel() {
+
         override fun setValue(v: Any?) {
+            println("sv of $prop")
             updateValue(v)
             render()
         }
@@ -52,18 +54,18 @@ class Dialog(val config: Config) {
         is SingleProp -> {
             if (prop.options.get().isEmpty()) {
                 JTextField().apply {
-                    Bindings.bind(this, object : PropValueModel() {
+                    Bindings.bind(this, object : PropValueModel(prop) {
                         override fun getValue() = prop.value.orNull
                         override fun updateValue(v: Any?) { prop.value.set(v?.toString()) }
                     })
                 }
             } else {
                 JComboBox<String>().apply {
-                    val valueModel = object : PropValueModel() {
+                    val valueModel = object : PropValueModel(prop) {
                         override fun getValue() = prop.value.orNull
                         override fun updateValue(v: Any?) { prop.value.set(v?.toString()) }
                     }
-                    val optionsModel = object : PropValueModel() {
+                    val optionsModel = object : PropValueModel(prop) {
                         override fun getValue() = prop.options.orNull ?: listOf()
                     }
                     Bindings.bind<String>(this, SelectionInList(optionsModel, valueModel))
@@ -73,9 +75,9 @@ class Dialog(val config: Config) {
         is ListProp -> {
             if (prop.options.get().isEmpty()) {
                 JTextArea().apply {
-                    Bindings.bind(this, object : PropValueModel() {
+                    Bindings.bind(this, object : PropValueModel(prop) {
                         override fun getValue() = prop.value.orNull?.joinToString("\n")
-                        override fun setValue(v: Any?) { prop.value.set(v?.toString()?.split("\n")) }
+                        override fun updateValue(v: Any?) { prop.value.set(v?.toString()?.split("\n")) }
                     })
                 }
             } else {
@@ -84,7 +86,7 @@ class Dialog(val config: Config) {
         }
         is MapProp -> {
             JTextArea().apply {
-                val valueModel = object : PropValueModel() {
+                val valueModel = object : PropValueModel(prop) {
                     override fun getValue() = prop.value.orNull?.map { "${it.key}=${it.value}" }?.joinToString("\n")
                     override fun updateValue(v: Any?) {
                         prop.value.set(v?.toString()?.split("\n")?.associate {
@@ -93,7 +95,6 @@ class Dialog(val config: Config) {
                     }
                 }
                 Bindings.bind(this, valueModel)
-                Bindings.addComponentPropertyHandler(this, valueModel)
             }
         }
         else -> throw ConfigException("Config property '${prop.name}' has invalid type!")
@@ -106,7 +107,7 @@ class Dialog(val config: Config) {
         dialog.add(tabs, "grow, span, wrap")
 
         config.groups.get().forEach { group ->
-            val panel = JPanel(MigLayout(layoutConstraints("fillx", "insets 0"))).also { tab ->
+            val panel = JPanel(MigLayout(layoutConstraints("fillx", "insets 5"))).also { tab ->
                 group.props.get().forEach { prop ->
                     tab.add(JPanel(MigLayout(layoutConstraints("fill", "insets 5"))).also { propPanel ->
                         propPanel.add(JLabel(prop.label.get()), "wrap")
@@ -168,6 +169,14 @@ class Dialog(val config: Config) {
         propPanels.forEach { panel ->
             panel.container.isVisible = panel.data.visible.get()
             panel.field.isEnabled = panel.data.enabled.get()
+
+            if (panel.field is JTextField) {
+                // TODO ...
+                println("update prop = ${panel.data.name}, field = ${panel.field.text}, data = ${panel.data.value()}")
+                if (panel.field.text != panel.data.value()) {
+                    panel.field.text = panel.data.value()?.toString()
+                }
+            }
         }
     }
 
