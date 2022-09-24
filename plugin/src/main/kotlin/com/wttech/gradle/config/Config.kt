@@ -3,61 +3,51 @@ package com.wttech.gradle.config
 import com.wttech.gradle.config.gui.Dialog
 import com.wttech.gradle.config.util.capitalLetter
 import com.wttech.gradle.config.util.capitalWords
-import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.Project
 
-open class Config : DefaultTask() {
+open class Config(val name: String, val project: Project) {
 
-    @get:Internal
-    val config by lazy { project.extensions.getByType(ConfigExtension::class.java) }
+    private val logger = project.logger
 
-    @get:Internal
-    val fileManager by lazy { config.fileManager() }
+    val settings by lazy { project.extensions.getByType(ConfigSettings::class.java) }
+
+    val fileManager by lazy { settings.fileManager() }
 
     fun fileManager(options: FileManager.() -> Unit) {
         fileManager.apply(options)
     }
 
-    @Internal
     val inputMode = project.objects.property(InputMode::class.java).apply {
         set(InputMode.GUI)
     }
 
-    @Internal
     val outputDir = project.objects.directoryProperty().apply {
         set(project.layout.projectDirectory.dir(".gradle/config"))
     }
 
-    @Internal
     val outputCapturedFile = project.objects.fileProperty().apply {
         set(outputDir.map { it.file("$name.captured.yml")})
     }
 
-    @Internal
     val outputYmlFile = project.objects.fileProperty().apply {
         set(outputDir.map { it.file("$name.yml")})
     }
 
-    @Internal
     val outputJsonFile = project.objects.fileProperty().apply {
         set(outputDir.map { it.file("$name.json")})
     }
 
     // TODO deal with loading in build/tasks in GAT
-    @Internal
     val outputLoaded = project.objects.property(Boolean::class.java).apply {
         set(false)
     }
 
-    @Internal
     val groups = project.objects.listProperty(Group::class.java)
     
     fun group(groupName: String, options: Group.() -> Unit) {
         groups.add(project.provider { Group(this, groupName).apply(options) })
     }
 
-    @get:Internal
     @Suppress("unchecked_cast")
     val props get() = groups.get().flatMap { it.props.get() } as List<Prop>
 
@@ -68,7 +58,6 @@ open class Config : DefaultTask() {
     fun getProp(propName: String) = findProp(propName)
         ?: throw ConfigException("Prop '$propName' is not defined!")
 
-    @get:Internal
     var values: Map<String, Any?>
         get() = props.associate { it.name to it.value() }
         set(vs) { vs.forEach { (k, v) -> findProp(k)?.value(v) } }
@@ -87,7 +76,6 @@ open class Config : DefaultTask() {
         this.valueFilter = predicate
     }
 
-    @get:Internal
     val valuesSaved: Map<String, Any?>
         get() = props.filter(valueFilter).associate { it.name to it.valueSaved() }
 
@@ -97,7 +85,6 @@ open class Config : DefaultTask() {
 
     fun mapValue(propName: String) = getProp(propName).map.value()
 
-    @Internal
     val labelDict = project.objects.mapProperty(String::class.java, String::class.java).apply {
         set(mapOf())
     }
@@ -109,7 +96,6 @@ open class Config : DefaultTask() {
 
     fun composeLabel(text: String): String = labelDict.get().entries.fold(text.capitalWords()) { n, (s, r) -> n.replace(s, r) }
 
-    @TaskAction
     fun process() {
         lockDefinitions()
         printDefinitions()
@@ -125,7 +111,7 @@ open class Config : DefaultTask() {
     }
 
     private fun printDefinitions() {
-        if (config.debugMode.get()) {
+        if (settings.debugMode.get()) {
             logger.lifecycle("Config '$name' groups and properties are defined like follows (debug mode is on)")
             println()
             groups.get().forEach { group ->
@@ -146,7 +132,7 @@ open class Config : DefaultTask() {
         }
     }
 
-    private fun captureValues() {
+    fun captureValues() {
         logger.lifecycle("Config '$name' is capturing values using input mode '${inputMode.orNull}'")
         when (inputMode.get()) {
             InputMode.GUI -> { Dialog.render(this) }
@@ -156,7 +142,7 @@ open class Config : DefaultTask() {
     }
 
     private fun printValues() {
-        if (config.debugMode.get()) {
+        if (settings.debugMode.get()) {
             logger.lifecycle("Config '$name' values are as follows (debug mode is on)")
             println("\n${fileManager.yaml.get().dump(values)}\n")
         }
@@ -164,7 +150,7 @@ open class Config : DefaultTask() {
 
     private fun saveValues() {
         val ymlCached = outputCapturedFile.asFile.get()
-        logger.lifecycle("Config '$name' is saving cached values to file '$ymlCached'")
+        logger.lifecycle("Config '$name' is saving captured values to file '$ymlCached'")
         fileManager.writeYml(ymlCached, values)
 
         val ymlFiltered = outputYmlFile.asFile.get()
