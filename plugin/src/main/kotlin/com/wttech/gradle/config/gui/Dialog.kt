@@ -12,14 +12,12 @@ import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import javax.swing.*
 
-class Dialog(val config: Config) {
+class Dialog(val config: Config, val debug: Boolean) {
 
     private var cancelled = false
 
-    val layoutDebug = config.settings.debugMode.get()
-
     fun layoutConstraints(vararg constraints: String) = constraints.toMutableList().apply {
-        if (layoutDebug) add("debug")
+        if (debug ) add("debug")
     }.joinToString(",")
 
     private val dialog = JDialog().apply {
@@ -219,9 +217,9 @@ class Dialog(val config: Config) {
                 "Ultimately run command with '--no-daemon' option."
 
         @Suppress("TooGenericExceptionCaught")
-        fun render(config: Config) = try {
+        fun render(config: Config, debug: Boolean) = try {
             FlatLightLaf.setup()
-            val dialog = Dialog(config)
+            val dialog = Dialog(config, debug)
             dialog.render(true)
         } catch (e: HeadlessException) {
             throw ConfigException("Config GUI dialog cannot be opened in headless mode!\n$TROUBLESHOOTING")

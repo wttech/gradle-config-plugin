@@ -27,11 +27,6 @@ open class ConfigSettings(val project: Project) {
 
     fun fileManager() = FileManager(project)
 
-    val debugMode = project.objects.property(Boolean::class.java).apply {
-        convention(false)
-        project.findProperty("config.debugMode")?.let { set(it.toString().toBoolean()) }
-    }
-
     companion object {
         const val NAME = "config"
 

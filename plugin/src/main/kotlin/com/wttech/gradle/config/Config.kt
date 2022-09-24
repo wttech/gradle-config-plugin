@@ -96,12 +96,12 @@ open class Config(val name: String, val project: Project) {
 
     fun composeLabel(text: String): String = labelDict.get().entries.fold(text.capitalWords()) { n, (s, r) -> n.replace(s, r) }
 
-    fun process() {
+    fun capture(options: CaptureOptions) {
         lockDefinitions()
-        printDefinitions()
+        if (options.debug) printDefinitions()
         readValues()
-        captureValues()
-        printValues()
+        captureValues(options)
+        if (options.debug) printValues()
         saveValues()
     }
 
@@ -111,17 +111,15 @@ open class Config(val name: String, val project: Project) {
     }
 
     private fun printDefinitions() {
-        if (settings.debugMode.get()) {
-            logger.lifecycle("Config '$name' groups and properties are defined like follows (debug mode is on)")
-            println()
-            groups.get().forEach { group ->
-                println(group)
-                group.props.get().forEach { prop ->
-                    println(prop)
-                }
+        logger.lifecycle("Config '$name' groups and properties are defined like follows (debug mode is on)")
+        println()
+        groups.get().forEach { group ->
+            println(group)
+            group.props.get().forEach { prop ->
+                println(prop)
             }
-            println()
         }
+        println()
     }
 
     private fun readValues() {
@@ -132,20 +130,17 @@ open class Config(val name: String, val project: Project) {
         }
     }
 
-    fun captureValues() {
-        logger.lifecycle("Config '$name' is capturing values using input mode '${inputMode.orNull}'")
-        when (inputMode.get()) {
-            InputMode.GUI -> { Dialog.render(this) }
+    fun captureValues(options: CaptureOptions) {
+        logger.lifecycle("Config '$name' is capturing values using input mode '$inputMode'")
+        when (options.inputMode) {
+            InputMode.GUI -> { Dialog.render(this, options.debug) }
             InputMode.CLI -> TODO("Config CLI input mode is not yet supported!")
-            else -> throw ConfigException("Config '$name' input mode is not specified!")
         }
     }
 
     private fun printValues() {
-        if (settings.debugMode.get()) {
-            logger.lifecycle("Config '$name' values are as follows (debug mode is on)")
-            println("\n${fileManager.yaml.get().dump(values)}\n")
-        }
+        logger.lifecycle("Config '$name' values are as follows (debug mode is on)")
+        println("\n${fileManager.yaml.get().dump(values)}\n")
     }
 
     private fun saveValues() {
