@@ -12,6 +12,12 @@ class Group(val definition: Definition, val name: String) {
         label.set(text)
     }
 
+    val description = project.objects.property(String::class.java)
+
+    fun description(text: String) {
+        description.set(text)
+    }
+
     val visible = project.objects.property(Boolean::class.java).convention(true)
 
     fun visible(predicate: () -> Boolean) {

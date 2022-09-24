@@ -6,11 +6,13 @@ import com.jgoodies.binding.list.SelectionInList
 import com.jgoodies.binding.value.AbstractValueModel
 import com.wttech.gradle.config.*
 import net.miginfocom.swing.MigLayout
+import java.awt.Font
 import java.awt.HeadlessException
 import java.awt.Toolkit
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import javax.swing.*
+
 
 class Dialog(val definition: Definition) {
 
@@ -117,9 +119,24 @@ class Dialog(val definition: Definition) {
 
         definition.groups.get().forEach { group ->
             val panel = JPanel(MigLayout(layoutConstraints("fillx", "insets 5"))).also { tab ->
+                if (!group.description.orNull.isNullOrBlank()) {
+                    tab.add(JPanel(MigLayout(layoutConstraints("fill", "insets 5"))).also { groupPanel ->
+                        groupPanel.add(JLabel().apply {
+                            text = group.description.get()
+                            font = descriptionFont()
+                        }, "wrap")
+                    }, "growx, wrap, top")
+                }
+
                 group.props.get().forEach { prop: Prop ->
                     tab.add(JPanel(MigLayout(layoutConstraints("fill", "insets 5"))).also { propPanel ->
                         propPanel.add(JLabel(prop.label.get()), "wrap")
+                        if (!prop.description.orNull.isNullOrBlank()) {
+                            propPanel.add(JLabel().apply {
+                                text = prop.description.get()
+                                font = descriptionFont()
+                            }, "wrap")
+                        }
                         val propField = propField(prop)
                         when (propField) {
                             is JTextArea -> propPanel.add(propField, "w 300::, h 60::, growx, wrap")
@@ -132,6 +149,8 @@ class Dialog(val definition: Definition) {
             groupTabs.add(GroupTab(group, panel))
         }
     }
+
+    private fun JLabel.descriptionFont() = Font(font.name, Font.PLAIN, (font.size.toDouble() * 0.75).toInt())
 
     private val applyButton = JButton("Apply").apply {
         addActionListener { dialog.dispose() }

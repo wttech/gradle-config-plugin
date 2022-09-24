@@ -18,6 +18,7 @@ config {
         }
         group("local") {
             label("Local Env")
+            description("Environment set up directly on current machine")
             visible { value("infra") == name }
 
             prop("monitoringEnabled") {
@@ -27,6 +28,7 @@ config {
         }
         group("aws_afe_single") {
             label("Remote Env")
+            description("Dedicated env for AFE app deployed on AWS infra")
             visible { "${value("infra")}_${value("envType")}" == name }
 
             prop("env") {
@@ -34,24 +36,29 @@ config {
             }
             prop("envMode") {
                 options("dev", "stg", "prod")
+                description("Controls AEM run mode")
                 enabled { otherValue("env") == "kp" }
             }
             prop("aemInstancePassword") {
                 valueDynamic { "${otherValue("env")}-pass" }
+                description("Needed to access AEM admin (author & publish)")
             }
             prop("aemProxyPassword") {
                 value("admin")
+                description("Needed to access AEM dispatcher pages")
             }
             listProp("aemPackages") {
                 values("a", "b", "c")
             }
         }
         group("app") {
+            description("Application build settings")
             prop("mavenArgs") {
                 value("-DskipTests")
             }
         }
         group("test") {
+            description("Automated tests execution settings")
             prop("percyToken")
             prop("percyEnabled") {
                 checkbox()
