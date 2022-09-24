@@ -17,6 +17,14 @@ open class Definition(val name: String, val project: Project) {
         fileManager.apply(options)
     }
 
+    val label = project.objects.property(String::class.java).apply {
+        convention(project.provider { composeLabel(name) })
+    }
+
+    fun label(text: String) {
+        label.set(text)
+    }
+
     val debugMode = project.objects.property(Boolean::class.java).apply {
         convention(false)
     }

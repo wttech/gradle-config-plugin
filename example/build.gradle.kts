@@ -4,10 +4,13 @@ plugins {
 
 config {
     define {
+        label("GAT configuration")
+
         valueSaveVisible()
         labelAbbrs("aem")
 
         group("general") {
+            description("Infrastructure and environment type selection")
             prop("infra") {
                 value("aws")
                 options("local", "aws", "gcp", "az", "vagrant")
@@ -26,10 +29,10 @@ config {
                 checkbox()
             }
         }
-        group("aws_afe_single") {
+        group("remote-aws_afe_single") {
             label("Remote Env")
             description("Dedicated env for AFE app deployed on AWS infra")
-            visible { "${value("infra")}_${value("envType")}" == name }
+            visible { name == "remote-${value("infra")}_${value("envType")}" }
 
             prop("env") {
                 value("kp")

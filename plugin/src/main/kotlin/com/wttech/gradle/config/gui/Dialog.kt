@@ -23,7 +23,7 @@ class Dialog(val definition: Definition) {
     }.joinToString(",")
 
     private val dialog = JDialog().apply {
-        title = "Config"
+        title = definition.label.get()
         layout = MigLayout(layoutConstraints("fill"))
         isAlwaysOnTop = true
         isModal = true
