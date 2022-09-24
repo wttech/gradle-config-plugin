@@ -1,7 +1,5 @@
 package com.wttech.gradle.config
 
-typealias SingleType = String
-
 class SingleProp(group: Group, name: String): Prop(group, name) {
 
     private val project = group.project
@@ -17,34 +15,61 @@ class SingleProp(group: Group, name: String): Prop(group, name) {
 
     val optionsStyle = project.objects.property(OptionsStyle::class.java).convention(OptionsStyle.SELECT)
 
-    fun checkbox() {
-        optionsStyle.set(OptionsStyle.CHECKBOX)
-    }
-
-    fun select() {
-        optionsStyle.set(OptionsStyle.SELECT)
-    }
     enum class OptionsStyle {
         CHECKBOX,
         SELECT
     }
 
-    private var valueMutator: (SingleType?) -> SingleType? = { it }
+    fun checkbox() {
+        optionsStyle.set(OptionsStyle.CHECKBOX)
+        valueType.set(ValueType.BOOL)
+    }
 
-    fun valueDynamic(mutator: (value: SingleType?) -> SingleType?) {
-        this.valueMutator = mutator
+    fun select() {
+        optionsStyle.set(OptionsStyle.SELECT)
+    }
+
+    val valueType = project.objects.property(ValueType::class.java).convention(ValueType.STRING)
+
+    enum class ValueType {
+        STRING,
+        INT,
+        DOUBLE,
+        BOOL
+    }
+
+    fun valueString() { valueType.set(ValueType.STRING) }
+    fun valueInt() { valueType.set(ValueType.INT) }
+    fun valueDouble() { valueType.set(ValueType.DOUBLE) }
+    fun valueBool() { valueType.set(ValueType.BOOL) }
+
+    private var valueDynamic: (String?) -> String? = { it }
+
+    fun valueDynamic(mutator: (value: String?) -> String?) {
+        this.valueDynamic = mutator
+    }
+
+    private var valueSaved: (String?) -> Any? = { v ->
+        when (valueType.get()) {
+            ValueType.BOOL -> v?.toBoolean()
+            ValueType.INT -> v?.toInt()
+            ValueType.DOUBLE -> v?.toDouble()
+            else -> v
+        }
+    }
+
+    fun valueSaved(processor: (value: String?) -> String?) {
+        this.valueSaved = processor
     }
 
     @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
     private val value = project.objects.property(String::class.java).convention(options.map { it.firstOrNull() })
 
-    override fun value() = valueMutator(value.orNull)
+    override fun value() = valueDynamic(value.orNull)
+
+    override fun valueSaved() = valueSaved(value())
 
     override fun value(v: Any?) {
         value.set(v?.toString())
     }
-
-    fun int() = value()?.toInt()
-
-    fun boolean() = value()?.toBoolean()
 }

@@ -37,6 +37,8 @@ abstract class Prop(val group: Group, val name: String) {
 
     abstract fun value(): Any?
 
+    open fun valueSaved() = value()
+
     abstract fun value(v: Any?)
 
     val single: SingleProp get() = when (this) {

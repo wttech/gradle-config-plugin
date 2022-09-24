@@ -89,7 +89,7 @@ open class Config : DefaultTask() {
 
     @get:Internal
     val valuesSaved: Map<String, Any?>
-        get() = props.filter(valueFilter).associate { it.name to it.value() }
+        get() = props.filter(valueFilter).associate { it.name to it.valueSaved() }
 
     fun value(propName: String) = getProp(propName).single.value()
 
@@ -113,7 +113,7 @@ open class Config : DefaultTask() {
     fun process() {
         lockDefinitions()
         printDefinitions()
-        // TODO readValues()
+        readValues()
         captureValues()
         printValues()
         saveValues()
