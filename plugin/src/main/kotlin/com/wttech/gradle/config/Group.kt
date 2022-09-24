@@ -1,11 +1,11 @@
 package com.wttech.gradle.config
 
-class Group(val config: Config, val name: String) {
+class Group(val definition: Definition, val name: String) {
 
-    val project = config.project
+    val project = definition.project
 
     val label = project.objects.property(String::class.java).apply {
-        convention(project.provider { config.composeLabel(name) })
+        convention(project.provider { definition.composeLabel(name) })
     }
 
     fun label(text: String) {

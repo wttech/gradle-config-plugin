@@ -7,7 +7,7 @@ abstract class Prop(val group: Group, val name: String) {
     // CLI & GUI input
 
     val label = project.objects.property(String::class.java).apply {
-        convention(project.provider { group.config.composeLabel(name) })
+        convention(project.provider { group.definition.composeLabel(name) })
     }
 
     fun label(text: String) {
@@ -61,7 +61,7 @@ abstract class Prop(val group: Group, val name: String) {
 
     val mapValue get() = map.value()
 
-    fun other(propName: String) = group.config.getProp(propName)
+    fun other(propName: String) = group.definition.getProp(propName)
 
     fun otherValue(propName: String) = other(propName).single.value()
 

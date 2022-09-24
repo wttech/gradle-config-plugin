@@ -5,16 +5,20 @@ import com.wttech.gradle.config.util.capitalLetter
 import com.wttech.gradle.config.util.capitalWords
 import org.gradle.api.Project
 
-open class Config(val name: String, val project: Project) {
+open class Definition(val name: String, val project: Project) {
 
     private val logger = project.logger
 
-    val settings by lazy { project.extensions.getByType(ConfigSettings::class.java) }
+    val settings by lazy { project.extensions.getByType(ConfigExtension::class.java) }
 
     val fileManager by lazy { settings.fileManager() }
 
     fun fileManager(options: FileManager.() -> Unit) {
         fileManager.apply(options)
+    }
+
+    val debugMode = project.objects.property(Boolean::class.java).apply {
+        convention(false)
     }
 
     val inputMode = project.objects.property(InputMode::class.java).apply {
@@ -96,12 +100,12 @@ open class Config(val name: String, val project: Project) {
 
     fun composeLabel(text: String): String = labelDict.get().entries.fold(text.capitalWords()) { n, (s, r) -> n.replace(s, r) }
 
-    fun capture(options: CaptureOptions) {
+    fun capture() {
         lockDefinitions()
-        if (options.debug) printDefinitions()
+        if (debugMode.get()) printDefinitions()
         readValues()
-        captureValues(options)
-        if (options.debug) printValues()
+        captureValues()
+        if (debugMode.get()) printValues()
         saveValues()
     }
 
@@ -130,11 +134,12 @@ open class Config(val name: String, val project: Project) {
         }
     }
 
-    fun captureValues(options: CaptureOptions) {
-        logger.lifecycle("Config '$name' is capturing values using input mode '$inputMode'")
-        when (options.inputMode) {
-            InputMode.GUI -> { Dialog.render(this, options.debug) }
+    fun captureValues() {
+        logger.lifecycle("Config '$name' is capturing values using input mode '${inputMode.get()}'")
+        when (inputMode.get()) {
+            InputMode.GUI -> { Dialog.render(this) }
             InputMode.CLI -> TODO("Config CLI input mode is not yet supported!")
+            else -> throw ConfigException("Config '$name' uses unsupported input mode!")
         }
     }
 

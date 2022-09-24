@@ -12,12 +12,12 @@ import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import javax.swing.*
 
-class Dialog(val config: Config, val debug: Boolean) {
+class Dialog(val definition: Definition) {
 
     private var cancelled = false
 
     fun layoutConstraints(vararg constraints: String) = constraints.toMutableList().apply {
-        if (debug ) add("debug")
+        if (definition.debugMode.get()) add("debug")
     }.joinToString(",")
 
     private val dialog = JDialog().apply {
@@ -115,7 +115,7 @@ class Dialog(val config: Config, val debug: Boolean) {
     private val tabPane = JTabbedPane().also { tabs ->
         dialog.add(tabs, "grow, span, wrap")
 
-        config.groups.get().forEach { group ->
+        definition.groups.get().forEach { group ->
             val panel = JPanel(MigLayout(layoutConstraints("fillx", "insets 5"))).also { tab ->
                 group.props.get().forEach { prop: Prop ->
                     tab.add(JPanel(MigLayout(layoutConstraints("fill", "insets 5"))).also { propPanel ->
@@ -159,7 +159,7 @@ class Dialog(val config: Config, val debug: Boolean) {
      * At the same time, recreation is avoided because field focus is lost.
      */
     fun updateGroupTabs() {
-        val groupsVisible = config.groups.get().filter { it.visible.get() }
+        val groupsVisible = definition.groups.get().filter { it.visible.get() }
         val groupsVisibleNew = groupsVisible.map { Pair(it.name, it.visible.get()) }.hashCode()
         if (groupsVisibleOld != groupsVisibleNew) {
             tabPane.removeAll()
@@ -217,9 +217,9 @@ class Dialog(val config: Config, val debug: Boolean) {
                 "Ultimately run command with '--no-daemon' option."
 
         @Suppress("TooGenericExceptionCaught")
-        fun render(config: Config, debug: Boolean) = try {
+        fun render(definition: Definition) = try {
             FlatLightLaf.setup()
-            val dialog = Dialog(config, debug)
+            val dialog = Dialog(definition)
             dialog.render(true)
         } catch (e: HeadlessException) {
             throw ConfigException("Config GUI dialog cannot be opened in headless mode!\n$TROUBLESHOOTING")
