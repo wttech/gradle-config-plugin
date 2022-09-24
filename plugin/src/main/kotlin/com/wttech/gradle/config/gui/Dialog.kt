@@ -6,6 +6,7 @@ import com.jgoodies.binding.list.SelectionInList
 import com.jgoodies.binding.value.AbstractValueModel
 import com.wttech.gradle.config.*
 import net.miginfocom.swing.MigLayout
+import java.awt.Color
 import java.awt.Font
 import java.awt.HeadlessException
 import java.awt.Toolkit
@@ -46,7 +47,7 @@ class Dialog(val definition: Definition) {
         open fun updateValue(v: Any?) {}
     }
 
-    class PropPanel(val data: Prop, val container: JPanel, val field: JComponent)
+    class PropPanel(val data: Prop, val container: JPanel, val field: JComponent, val validation: JLabel)
     private val propPanels = mutableListOf<PropPanel>()
 
     private fun propField(prop: Prop): JComponent = when (prop) {
@@ -142,7 +143,12 @@ class Dialog(val definition: Definition) {
                             is JTextArea -> propPanel.add(propField, "w 300::, h 60::, growx, wrap")
                             else -> propPanel.add(propField, "w 300::, growx, wrap")
                         }
-                        propPanels.add(PropPanel(prop, propPanel, propField))
+                        val validationLabel = JLabel().apply {
+                            font = descriptionFont()
+                            foreground = Color.RED
+                        }
+                        propPanel.add(validationLabel, "wrap")
+                        propPanels.add(PropPanel(prop, propPanel, propField, validationLabel))
                     }, "growx, wrap, top")
                 }
             }
@@ -152,6 +158,7 @@ class Dialog(val definition: Definition) {
 
     private fun JLabel.descriptionFont() = Font(font.name, Font.PLAIN, (font.size.toDouble() * 0.75).toInt())
 
+    // TODO do not allow to "Apply" when validation does not pass
     private val applyButton = JButton("Apply").apply {
         addActionListener { dialog.dispose() }
         dialog.add(this, "span, wrap")
@@ -195,9 +202,6 @@ class Dialog(val definition: Definition) {
 
     fun updatePropPanels() {
         propPanels.forEach { panel ->
-            panel.container.isVisible = panel.data.visible.get()
-            panel.field.isEnabled = panel.data.enabled.get()
-
             // fix two-way syncing for text field and area (combo works fine)
             val normalizedValue by lazy {
                 when (panel.data) {
@@ -210,6 +214,12 @@ class Dialog(val definition: Definition) {
                 panel.field is JTextField && panel.field.text != normalizedValue -> tryMutate { panel.field.text = normalizedValue }
                 panel.field is JTextArea && panel.field.text != normalizedValue -> tryMutate { panel.field.text = normalizedValue }
             }
+
+            panel.container.isVisible = panel.data.visible.get()
+            panel.field.isEnabled = panel.data.enabled.get()
+
+            panel.validation.text = panel.data.validation
+            panel.validation.isVisible = !panel.data.valid
         }
     }
 

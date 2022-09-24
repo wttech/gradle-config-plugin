@@ -45,10 +45,12 @@ config {
             prop("aemInstancePassword") {
                 valueDynamic { "${otherValue("env")}-pass" }
                 description("Needed to access AEM admin (author & publish)")
+                required() // TODO validation conflict with dynamic
             }
             prop("aemProxyPassword") {
                 value("admin")
                 description("Needed to access AEM dispatcher pages")
+                required()
             }
             listProp("aemPackages") {
                 values("a", "b", "c")

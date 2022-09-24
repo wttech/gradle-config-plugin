@@ -34,6 +34,22 @@ abstract class Prop(val group: Group, val name: String) {
         enabled.set(project.provider { predicate() })
     }
 
+    private var validator: (() -> String?) = { null }
+
+    val validation get() = validator()
+
+    val valid get() = validation == null
+
+    fun validate(validator: () -> String?) {
+        this.validator = validator
+    }
+
+    fun required() = validate {
+        if (singleValue.isNullOrBlank()) "Value is required"
+        else null
+    }
+
+    fun optional() = validate { null }
 
     abstract fun value(): Any?
 
