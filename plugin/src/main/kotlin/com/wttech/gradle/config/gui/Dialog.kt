@@ -263,17 +263,21 @@ class Dialog(val definition: Definition) {
 
         @Suppress("TooGenericExceptionCaught")
         fun render(definition: Definition) {
+            var cancelled = false
             try {
                 FlatLightLaf.setup()
                 val dialog = Dialog(definition)
                 dialog.render(true)
                 if (dialog.cancelled) {
-                    throw ConfigException("Config '${definition.name}' GUI dialog has been closed!")
+                    cancelled = true
                 }
             } catch (e: HeadlessException) {
                 throw ConfigException("Config '${definition.name}' GUI dialog cannot be opened in headless mode!\n$TROUBLESHOOTING")
             } catch (e: Exception) {
-                throw ConfigException("Config '${definition.name}' GUI dialog cannot be opened!\n$TROUBLESHOOTING", e)
+                throw ConfigException("Config '${definition.name}' GUI dialog error!\n$TROUBLESHOOTING", e)
+            }
+            if (cancelled) {
+                throw CancelException("Config '${definition.name}' GUI dialog has been closed!")
             }
         }
     }

@@ -25,12 +25,16 @@ open class Definition(val name: String, val project: Project) {
         label.set(text)
     }
 
+    val inputMode = project.objects.property(InputMode::class.java).apply {
+        set(InputMode.GUI)
+    }
+
     val debug = project.objects.property(Boolean::class.java).apply {
         convention(false)
     }
 
-    val inputMode = project.objects.property(InputMode::class.java).apply {
-        set(InputMode.GUI)
+    val verbose = project.objects.property(Boolean::class.java).apply {
+        convention(inputMode.map { it == InputMode.FILE })
     }
 
     val outputDir = project.objects.directoryProperty().apply {
