@@ -28,4 +28,10 @@ class MapProp(group: Group, name: String): Prop(group, name) {
         is Map<*, *>? -> value.set(v as Map<String, Any?>)
         else -> project.logger.warn("Config value '$v' type of prop '$name' is not a map! Skipping it")
     }
+
+    override fun required() = validate {
+        val v = value()
+        if (v == null || v.isEmpty()) "Value is required"
+        else null
+    }
 }

@@ -32,4 +32,10 @@ class ListProp(group: Group, name: String): Prop(group, name) {
     val options = project.objects.listProperty(String::class.java).apply {
         set(listOf())
     }
+
+    override fun required() = validate {
+        val v = value()
+        if (v == null || v.isEmpty()) "Value is required"
+        else null
+    }
 }

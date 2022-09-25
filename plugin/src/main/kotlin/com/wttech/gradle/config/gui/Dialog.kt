@@ -61,7 +61,7 @@ class Dialog(val definition: Definition) {
             if (prop.options.get().isEmpty()) {
                 JTextField().apply {
                     Bindings.bind(this, object : PropValueModel() {
-                        override fun getValue() = prop.singleValue
+                        override fun getValue() = prop.stringValue
                         override fun updateValue(v: Any?) { prop.value(v?.toString()) }
                     })
                 }
@@ -69,7 +69,7 @@ class Dialog(val definition: Definition) {
                 if (prop.optionsStyle.get() == StringProp.OptionsStyle.SELECT) {
                     JComboBox<String>().apply {
                         val valueModel = object : PropValueModel() {
-                            override fun getValue() = prop.singleValue
+                            override fun getValue() = prop.stringValue
                             override fun updateValue(v: Any?) { prop.value(v?.toString()) }
                         }
                         val optionsModel = object : PropValueModel() {
@@ -80,7 +80,7 @@ class Dialog(val definition: Definition) {
                 } else if (prop.optionsStyle.get() == StringProp.OptionsStyle.CHECKBOX) {
                     JCheckBox().apply {
                         val valueModel = object : PropValueModel() {
-                            override fun getValue() = prop.singleValue?.toBoolean()
+                            override fun getValue() = prop.stringValue?.toBoolean()
                             override fun updateValue(v: Any?) { prop.value(v?.toString()?.toBoolean()) }
                         }
                         Bindings.bind(this, valueModel)
@@ -156,7 +156,7 @@ class Dialog(val definition: Definition) {
                         }
                         val validationLabel = JLabel().apply {
                             font = descriptionFont()
-                            foreground = Color.RED
+                            foreground = Color(221, 76, 85) // #DD4C55
                         }
                         propPanel.add(validationLabel, "wrap")
                         propPanels.add(PropPanel(prop, propPanel, propField, validationLabel))

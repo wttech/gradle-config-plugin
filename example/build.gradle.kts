@@ -37,7 +37,7 @@ config {
 
             prop("env") {
                 value("kp")
-                required()
+                alphanumeric()
             }
             prop("envMode") {
                 options("dev", "stg", "prod")

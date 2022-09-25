@@ -48,12 +48,12 @@ abstract class Prop(val group: Group, val name: String) {
         this.validator = validator
     }
 
-    fun required() = validate {
-        if (singleValue.isNullOrBlank()) "Value is required"
+    open fun required() = validate {
+        if (value() == null) "Value is required"
         else null
     }
 
-    fun optional() = validate { null }
+    open fun optional() = validate { null }
 
     abstract fun value(): Any?
 
@@ -78,7 +78,7 @@ abstract class Prop(val group: Group, val name: String) {
         else -> throw ConfigException("Config prop '$name' is not a map!")
     }
 
-    val singleValue get() = string.value()
+    val stringValue get() = string.value()
 
     val listValue get() = list.value()
 

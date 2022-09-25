@@ -44,6 +44,12 @@ open class ConfigExtension(val project: Project) {
 
     fun mapValue(propName: String) = read().mapValue(propName)
 
+    fun get() = named(DEFAULT_NAME)
+
+    val json get() = get().outputJsonFile.get().asFile
+
+    val yml get() = get().outputYmlFile.get().asFile
+
     companion object {
         const val NAME = "config"
 

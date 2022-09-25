@@ -25,7 +25,7 @@ class StringProp(group: Group, name: String): Prop(group, name) {
 
     fun checkbox() {
         optionsStyle.set(OptionsStyle.CHECKBOX)
-        valueType.set(ValueType.BOOL)
+        valueTypeBool()
     }
 
     fun select() {
@@ -41,10 +41,10 @@ class StringProp(group: Group, name: String): Prop(group, name) {
         BOOL
     }
 
-    fun valueString() { valueType.set(ValueType.STRING) }
-    fun valueInt() { valueType.set(ValueType.INT) }
-    fun valueDouble() { valueType.set(ValueType.DOUBLE) }
-    fun valueBool() { valueType.set(ValueType.BOOL) }
+    fun valueTypeString() { valueType.set(ValueType.STRING) }
+    fun valueTypeInt() { valueType.set(ValueType.INT) }
+    fun valueTypeDouble() { valueType.set(ValueType.DOUBLE) }
+    fun valueTypeBool() { valueType.set(ValueType.BOOL) }
 
     private var valueDynamic: (String?) -> String? = { it }
 
@@ -75,4 +75,16 @@ class StringProp(group: Group, name: String): Prop(group, name) {
     override fun value(v: Any?) {
         value.set(v?.toString())
     }
+
+    override fun required() = validate { "Value is required".takeIf { value().isNullOrBlank() } }
+
+    fun regex(regex: String) = validate { "Should match regex '$regex'".takeUnless { checkRegex(regex) } }
+
+    fun alphanumeric() = validate { "Should be alphanumeric".takeUnless { checkRegex("^[a-zA-Z0-9]+$") } }
+
+    fun numeric() = validate { "Should be numeric".takeUnless { checkRegex("^[0-9]+$") } }
+
+    fun alpha() = validate { "Should contain only alphabetic characters".takeUnless { checkRegex("^[a-zA-Z0-9]+$") } }
+
+    fun checkRegex(regex: String) = value().orEmpty().let { Regex(regex).matches(it) }
 }
