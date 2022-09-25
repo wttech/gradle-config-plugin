@@ -8,7 +8,7 @@ import com.wttech.gradle.config.*
 import com.wttech.gradle.config.prop.ConstProp
 import com.wttech.gradle.config.prop.ListProp
 import com.wttech.gradle.config.prop.MapProp
-import com.wttech.gradle.config.prop.SingleProp
+import com.wttech.gradle.config.prop.StringProp
 import net.miginfocom.swing.MigLayout
 import java.awt.Color
 import java.awt.Font
@@ -57,7 +57,7 @@ class Dialog(val definition: Definition) {
     private val propPanels = mutableListOf<PropPanel>()
 
     private fun propField(prop: Prop): JComponent = when (prop) {
-        is SingleProp -> {
+        is StringProp -> {
             if (prop.options.get().isEmpty()) {
                 JTextField().apply {
                     Bindings.bind(this, object : PropValueModel() {
@@ -66,7 +66,7 @@ class Dialog(val definition: Definition) {
                     })
                 }
             } else {
-                if (prop.optionsStyle.get() == SingleProp.OptionsStyle.SELECT) {
+                if (prop.optionsStyle.get() == StringProp.OptionsStyle.SELECT) {
                     JComboBox<String>().apply {
                         val valueModel = object : PropValueModel() {
                             override fun getValue() = prop.singleValue
@@ -77,7 +77,7 @@ class Dialog(val definition: Definition) {
                         }
                         Bindings.bind<String>(this, SelectionInList(optionsModel, valueModel))
                     }
-                } else if (prop.optionsStyle.get() == SingleProp.OptionsStyle.CHECKBOX) {
+                } else if (prop.optionsStyle.get() == StringProp.OptionsStyle.CHECKBOX) {
                     JCheckBox().apply {
                         val valueModel = object : PropValueModel() {
                             override fun getValue() = prop.singleValue?.toBoolean()

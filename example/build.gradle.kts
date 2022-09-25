@@ -18,7 +18,7 @@ config {
             prop("envType") {
                 options("afe_single", "aem_single", "aem_multi")
             }
-            dynamicProp("domain") { "gat-${otherSingleValue("infra")}.wttech.cloud" }
+            dynamicProp("domain") { "gat-${otherStringValue("infra")}.wttech.cloud" }
         }
         group("local") {
             label("Local Env")
@@ -42,10 +42,10 @@ config {
             prop("envMode") {
                 options("dev", "stg", "prod")
                 description("Controls AEM run mode")
-                enabled { otherSingleValue("env") == "kp" }
+                enabled { otherStringValue("env") == "kp" }
             }
             prop("aemInstancePassword") {
-                valueDynamic { otherSingleValue("env")?.takeIf { it.isNotBlank() }?.let { "$it-pass" } }
+                valueDynamic { otherStringValue("env")?.takeIf { it.isNotBlank() }?.let { "$it-pass" } }
                 description("Needed to access AEM admin (author & publish)")
                 required()
             }
@@ -70,7 +70,12 @@ config {
             prop("percyEnabled") {
                 checkbox()
             }
-            dynamicProp("testBaseUrl") { "https://${otherValue("env")}.${otherValue("domain")}" }
+            dynamicProp("testBaseUrl") {
+                when (otherStringValue("infra")) {
+                    "local" -> "https://publish.local.gat.com"
+                    else -> "https://${otherValue("env")}.${otherValue("domain")}"
+                }
+            }
         }
     }
 }

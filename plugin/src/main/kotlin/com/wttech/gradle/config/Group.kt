@@ -3,7 +3,7 @@ package com.wttech.gradle.config
 import com.wttech.gradle.config.prop.ConstProp
 import com.wttech.gradle.config.prop.ListProp
 import com.wttech.gradle.config.prop.MapProp
-import com.wttech.gradle.config.prop.SingleProp
+import com.wttech.gradle.config.prop.StringProp
 
 class Group(val definition: Definition, val name: String) {
 
@@ -37,8 +37,10 @@ class Group(val definition: Definition, val name: String) {
 
     val props = project.objects.listProperty<Prop>(Prop::class.java)
 
-    fun prop(name: String, options: SingleProp.() -> Unit = {}) {
-        props.add(project.provider { SingleProp(this, name).apply(options) })
+    fun prop(name: String, options: StringProp.() -> Unit = {}) = stringProp(name, options)
+
+    fun stringProp(name: String, options: StringProp.() -> Unit = {}) {
+        props.add(project.provider { StringProp(this, name).apply(options) })
     }
 
     fun listProp(name: String, options: ListProp.() -> Unit = {}) {

@@ -91,7 +91,7 @@ open class Definition(val name: String, val project: Project) {
     val valuesSaved: Map<String, Any?>
         get() = props.filter(valueFilter).associate { it.name to it.valueSaved() }
 
-    fun value(propName: String) = getProp(propName).single.value()
+    fun value(propName: String) = getProp(propName).string.value()
 
     fun listValue(propName: String) = getProp(propName).list.value()
 

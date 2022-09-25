@@ -2,7 +2,7 @@ package com.wttech.gradle.config
 
 import com.wttech.gradle.config.prop.ListProp
 import com.wttech.gradle.config.prop.MapProp
-import com.wttech.gradle.config.prop.SingleProp
+import com.wttech.gradle.config.prop.StringProp
 
 abstract class Prop(val group: Group, val name: String) {
 
@@ -61,10 +61,10 @@ abstract class Prop(val group: Group, val name: String) {
 
     abstract fun value(v: Any?)
 
-    val single: SingleProp
+    val string: StringProp
         get() = when (this) {
-        is SingleProp -> this
-        else -> throw ConfigException("Config prop '$name' is not a single!")
+        is StringProp -> this
+        else -> throw ConfigException("Config prop '$name' is not a string!")
     }
     val list: ListProp
         get() = when (this) {
@@ -78,7 +78,7 @@ abstract class Prop(val group: Group, val name: String) {
         else -> throw ConfigException("Config prop '$name' is not a map!")
     }
 
-    val singleValue get() = single.value()
+    val singleValue get() = string.value()
 
     val listValue get() = list.value()
 
@@ -88,7 +88,7 @@ abstract class Prop(val group: Group, val name: String) {
 
     fun otherValue(propName: String) = other(propName).value()
 
-    fun otherSingleValue(propName: String) = other(propName).single.value()
+    fun otherStringValue(propName: String) = other(propName).string.value()
 
     fun otherListValue(propName: String) = other(propName).list.value()
 
