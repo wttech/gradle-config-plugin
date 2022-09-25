@@ -19,9 +19,12 @@ import java.awt.event.FocusListener
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import javax.swing.*
+import javax.swing.text.JTextComponent
 
 
 class Dialog(val definition: Definition) {
+
+    private val logger = definition.project.logger
 
     private var cancelled = false
 
@@ -43,6 +46,8 @@ class Dialog(val definition: Definition) {
             }
         })
     }
+
+    private var textComponentFocused: JTextComponent? = null
 
     private abstract inner class PropValueModel : AbstractValueModel() {
 
@@ -127,7 +132,7 @@ class Dialog(val definition: Definition) {
         definition.groups.get().forEach { group ->
             val panel = JPanel(MigLayout(layoutConstraints("fillx", "insets 5"))).also { tab ->
                 if (!group.description.orNull.isNullOrBlank()) {
-                    tab.add(JPanel(MigLayout(layoutConstraints("fill", "insets 5"))).also { groupPanel ->
+                    tab.add(JPanel(MigLayout(layoutConstraints("fill", "insets 2"))).also { groupPanel ->
                         groupPanel.add(JLabel().apply {
                             text = group.description.get()
                             font = descriptionFont()
@@ -136,7 +141,7 @@ class Dialog(val definition: Definition) {
                 }
 
                 group.props.get().filter { it !is ConstProp }.forEach { prop: Prop ->
-                    tab.add(JPanel(MigLayout(layoutConstraints("fill", "insets 5"))).also { propPanel ->
+                    tab.add(JPanel(MigLayout(layoutConstraints("fill", "insets 2"))).also { propPanel ->
                         propPanel.add(JLabel(prop.label.get()), "wrap")
                         if (!prop.description.orNull.isNullOrBlank()) {
                             propPanel.add(JLabel().apply {
@@ -146,7 +151,13 @@ class Dialog(val definition: Definition) {
                         }
                         val propField = propField(prop).apply {
                             addFocusListener(object: FocusListener {
-                                override fun focusGained(e: FocusEvent) { render() }
+                                override fun focusGained(e: FocusEvent) {
+                                    when (this@apply) {
+                                        is JTextComponent -> textComponentFocused = this@apply
+                                        else -> textComponentFocused = null
+                                    }
+                                    render()
+                                }
                                 override fun focusLost(e: FocusEvent) { render() }
                             })
                         }
@@ -169,14 +180,37 @@ class Dialog(val definition: Definition) {
 
     private fun JLabel.descriptionFont() = Font(font.name, Font.PLAIN, (font.size.toDouble() * 0.75).toInt())
 
-    // TODO do not allow to "Apply" when validation does not pass
+    private val pathChooser by lazy {
+        JFileChooser().apply {
+            fileSelectionMode = JFileChooser.FILES_AND_DIRECTORIES
+            isFileHidingEnabled = false
+        }
+    }
+
+    @Suppress("TooGenericExceptionCaught")
+    private val pathButton = JButton("Pick a path").apply {
+        addActionListener {
+            try {
+                if (pathChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION && textComponentFocused != null) {
+                    textComponentFocused!!.document.insertString(
+                        textComponentFocused!!.caretPosition,
+                        pathChooser.selectedFile.absolutePath,
+                        null
+                    )
+                }
+            } catch (e: Exception) {
+                logger.debug("Config '${definition.name}' has a problem with opening path chooser!", e)
+            }
+        }
+    }
+
     private val applyButton = JButton("Apply").apply {
         addActionListener { dialog.dispose() }
-        dialog.add(this, "span, wrap")
     }
 
     private val actionsPanel = JPanel(MigLayout(layoutConstraints("fill"))).apply {
-        add(applyButton, "align center")
+        add(pathButton, "align right")
+        add(applyButton, "align left")
         dialog.add(this, "span, growx, wrap, south")
     }
 
@@ -253,6 +287,7 @@ class Dialog(val definition: Definition) {
     }
 
     private fun updateActionPanel() {
+        pathButton.isEnabled = (textComponentFocused != null) && propPanels.any { it.field is JTextComponent }
         applyButton.isEnabled = definition.props.all { it.valid }
     }
 
