@@ -1,5 +1,10 @@
 package com.wttech.gradle.config
 
+import com.wttech.gradle.config.prop.ConstProp
+import com.wttech.gradle.config.prop.ListProp
+import com.wttech.gradle.config.prop.MapProp
+import com.wttech.gradle.config.prop.SingleProp
+
 class Group(val definition: Definition, val name: String) {
 
     val project = definition.project
@@ -42,6 +47,18 @@ class Group(val definition: Definition, val name: String) {
 
     fun mapProp(name: String, options: MapProp.() -> Unit = {}) {
         props.add(project.provider { MapProp(this, name).apply(options) })
+    }
+
+    private fun constProp(name: String, options: ConstProp.() -> Unit = {}) {
+        props.add(project.provider { ConstProp(this, name).apply(options) })
+    }
+
+    fun staticProp(name: String, value: Any?) = constProp(name) {
+        value(value)
+    }
+
+    fun dynamicProp(name: String, valueProvider: Prop.() -> Any?) = constProp(name) {
+        valueDynamic { valueProvider() }
     }
 
     override fun equals(other: Any?): Boolean {

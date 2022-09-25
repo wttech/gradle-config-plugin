@@ -1,5 +1,9 @@
 package com.wttech.gradle.config
 
+import com.wttech.gradle.config.prop.ListProp
+import com.wttech.gradle.config.prop.MapProp
+import com.wttech.gradle.config.prop.SingleProp
+
 abstract class Prop(val group: Group, val name: String) {
 
     private val project = group.project
@@ -57,16 +61,19 @@ abstract class Prop(val group: Group, val name: String) {
 
     abstract fun value(v: Any?)
 
-    val single: SingleProp get() = when (this) {
+    val single: SingleProp
+        get() = when (this) {
         is SingleProp -> this
         else -> throw ConfigException("Config prop '$name' is not a single!")
     }
-    val list: ListProp get() = when (this) {
+    val list: ListProp
+        get() = when (this) {
         is ListProp -> this
         else -> throw ConfigException("Config prop '$name' is not a list!")
     }
 
-    val map: MapProp get() = when (this) {
+    val map: MapProp
+        get() = when (this) {
         is MapProp -> this
         else -> throw ConfigException("Config prop '$name' is not a map!")
     }
@@ -79,7 +86,9 @@ abstract class Prop(val group: Group, val name: String) {
 
     fun other(propName: String) = group.definition.getProp(propName)
 
-    fun otherValue(propName: String) = other(propName).single.value()
+    fun otherValue(propName: String) = other(propName).value()
+
+    fun otherSingleValue(propName: String) = other(propName).single.value()
 
     fun otherListValue(propName: String) = other(propName).list.value()
 

@@ -1,4 +1,7 @@
-package com.wttech.gradle.config
+package com.wttech.gradle.config.prop
+
+import com.wttech.gradle.config.Group
+import com.wttech.gradle.config.Prop
 
 class SingleProp(group: Group, name: String): Prop(group, name) {
 

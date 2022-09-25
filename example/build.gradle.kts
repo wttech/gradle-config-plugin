@@ -18,6 +18,7 @@ config {
             prop("envType") {
                 options("afe_single", "aem_single", "aem_multi")
             }
+            dynamicProp("domain") { "gat-${otherSingleValue("infra")}.wttech.cloud" }
         }
         group("local") {
             label("Local Env")
@@ -36,16 +37,17 @@ config {
 
             prop("env") {
                 value("kp")
+                required()
             }
             prop("envMode") {
                 options("dev", "stg", "prod")
                 description("Controls AEM run mode")
-                enabled { otherValue("env") == "kp" }
+                enabled { otherSingleValue("env") == "kp" }
             }
             prop("aemInstancePassword") {
-                valueDynamic { otherValue("env")?.takeIf { it.isNotBlank() }?.let { "$it-pass" } }
+                valueDynamic { otherSingleValue("env")?.takeIf { it.isNotBlank() }?.let { "$it-pass" } }
                 description("Needed to access AEM admin (author & publish)")
-                required() // TODO validation conflict with dynamic
+                required()
             }
             prop("aemProxyPassword") {
                 value("admin")
@@ -68,6 +70,7 @@ config {
             prop("percyEnabled") {
                 checkbox()
             }
+            dynamicProp("testBaseUrl") { "https://${otherValue("env")}.${otherValue("domain")}" }
         }
     }
 }
