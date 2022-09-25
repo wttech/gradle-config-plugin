@@ -79,3 +79,11 @@ config {
         }
     }
 }
+
+tasks {
+    register("printAemInstancePassword") {
+        doLast {
+            println(config["aemInstancePassword"])
+        }
+    }
+}

@@ -95,7 +95,9 @@ open class Definition(val name: String, val project: Project) {
     val valuesSaved: Map<String, Any?>
         get() = props.filter(valueFilter).associate { it.name to it.valueSaved() }
 
-    fun value(propName: String) = getProp(propName).string.value()
+    fun value(propName: String) = getProp(propName).value()
+
+    fun stringValue(propName: String) = getProp(propName).string.value()
 
     fun listValue(propName: String) = getProp(propName).list.value()
 
@@ -138,7 +140,7 @@ open class Definition(val name: String, val project: Project) {
         println()
     }
 
-    private fun readValues() {
+    internal fun readValues() {
         val file = outputCapturedFile.get().asFile
         if (file.exists()) {
             logger.lifecycle("Config '$name' is loading values from output file '$file'")
