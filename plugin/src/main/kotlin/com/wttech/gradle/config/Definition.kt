@@ -25,7 +25,7 @@ open class Definition(val name: String, val project: Project) {
         label.set(text)
     }
 
-    val debugMode = project.objects.property(Boolean::class.java).apply {
+    val debug = project.objects.property(Boolean::class.java).apply {
         convention(false)
     }
 
@@ -110,10 +110,10 @@ open class Definition(val name: String, val project: Project) {
 
     fun capture() {
         lockDefinitions()
-        if (debugMode.get()) printDefinitions()
+        if (debug.get()) printDefinitions()
         readValues()
         captureValues()
-        if (debugMode.get()) printValues()
+        if (debug.get()) printValues()
         saveValues()
     }
 
@@ -145,8 +145,9 @@ open class Definition(val name: String, val project: Project) {
     fun captureValues() {
         logger.lifecycle("Config '$name' is capturing values using input mode '${inputMode.get()}'")
         when (inputMode.get()) {
-            InputMode.GUI -> { Dialog.render(this) }
+            InputMode.GUI -> Dialog.render(this)
             InputMode.CLI -> TODO("Config CLI input mode is not yet supported!")
+            InputMode.FILE -> TODO("Config file input mode is not yet supported!")
             else -> throw ConfigException("Config '$name' uses unsupported input mode!")
         }
     }

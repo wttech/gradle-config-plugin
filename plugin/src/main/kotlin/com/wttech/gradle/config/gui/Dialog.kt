@@ -10,6 +10,8 @@ import java.awt.Color
 import java.awt.Font
 import java.awt.HeadlessException
 import java.awt.Toolkit
+import java.awt.event.FocusEvent
+import java.awt.event.FocusListener
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import javax.swing.*
@@ -20,7 +22,7 @@ class Dialog(val definition: Definition) {
     private var cancelled = false
 
     fun layoutConstraints(vararg constraints: String) = constraints.toMutableList().apply {
-        if (definition.debugMode.get()) add("debug")
+        if (definition.debug.get()) add("debug")
     }.joinToString(",")
 
     private val dialog = JDialog().apply {
@@ -138,7 +140,12 @@ class Dialog(val definition: Definition) {
                                 font = descriptionFont()
                             }, "wrap")
                         }
-                        val propField = propField(prop)
+                        val propField = propField(prop).apply {
+                            addFocusListener(object: FocusListener {
+                                override fun focusGained(e: FocusEvent) { render() }
+                                override fun focusLost(e: FocusEvent) { render() }
+                            })
+                        }
                         when (propField) {
                             is JTextArea -> propPanel.add(propField, "w 300::, h 60::, growx, wrap")
                             else -> propPanel.add(propField, "w 300::, growx, wrap")
@@ -234,10 +241,15 @@ class Dialog(val definition: Definition) {
     fun render(initial: Boolean = false) {
         updateGroupTabs()
         updatePropPanels()
+        updateActionPanel()
 
         dialog.pack()
         if (initial) dialog.centre()
         dialog.isVisible = true
+    }
+
+    private fun updateActionPanel() {
+        applyButton.isEnabled = definition.props.all { it.valid }
     }
 
     companion object {
@@ -246,14 +258,19 @@ class Dialog(val definition: Definition) {
                 "Ultimately run command with '--no-daemon' option."
 
         @Suppress("TooGenericExceptionCaught")
-        fun render(definition: Definition) = try {
-            FlatLightLaf.setup()
-            val dialog = Dialog(definition)
-            dialog.render(true)
-        } catch (e: HeadlessException) {
-            throw ConfigException("Config GUI dialog cannot be opened in headless mode!\n$TROUBLESHOOTING")
-        } catch (e: Exception) {
-            throw ConfigException("Config GUI dialog cannot be opened!\n$TROUBLESHOOTING", e)
+        fun render(definition: Definition) {
+            try {
+                FlatLightLaf.setup()
+                val dialog = Dialog(definition)
+                dialog.render(true)
+                if (dialog.cancelled) {
+                    throw ConfigException("Config '${definition.name}' GUI dialog has been closed!")
+                }
+            } catch (e: HeadlessException) {
+                throw ConfigException("Config '${definition.name}' GUI dialog cannot be opened in headless mode!\n$TROUBLESHOOTING")
+            } catch (e: Exception) {
+                throw ConfigException("Config '${definition.name}' GUI dialog cannot be opened!\n$TROUBLESHOOTING", e)
+            }
         }
     }
 }

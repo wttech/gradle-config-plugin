@@ -29,7 +29,7 @@ open class Config : DefaultTask() {
     @TaskAction
     fun capture() {
         val def = definition.get()
-        if (debug.isPresent) def.debugMode.set(debug.get())
+        if (debug.isPresent) def.debug.set(debug.get())
         if (cli.isPresent) def.inputMode.set(InputMode.CLI)
         if (gui.isPresent) def.inputMode.set(InputMode.GUI)
         def.capture()

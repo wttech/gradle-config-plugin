@@ -2,7 +2,8 @@ package com.wttech.gradle.config
 
 enum class InputMode {
     GUI,
-    CLI;
+    CLI,
+    FILE;
 
     companion object {
         fun of(name: String) = values().firstOrNull { it.name.equals(name, true) }

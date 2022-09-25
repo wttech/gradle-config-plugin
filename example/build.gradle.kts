@@ -43,7 +43,7 @@ config {
                 enabled { otherValue("env") == "kp" }
             }
             prop("aemInstancePassword") {
-                valueDynamic { "${otherValue("env")}-pass" }
+                valueDynamic { otherValue("env")?.takeIf { it.isNotBlank() }?.let { "$it-pass" } }
                 description("Needed to access AEM admin (author & publish)")
                 required() // TODO validation conflict with dynamic
             }
