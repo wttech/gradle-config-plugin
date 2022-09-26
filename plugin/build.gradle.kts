@@ -1,14 +1,15 @@
-//import io.gitlab.arturbosch.detekt.Detekt
-//import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import io.gitlab.arturbosch.detekt.Detekt
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     `java-gradle-plugin`
     `maven-publish`
+
     id("com.gradle.plugin-publish") version "0.20.0"
     id("org.jetbrains.kotlin.jvm") version "1.6.21"
-    //id("io.gitlab.arturbosch.detekt") version "1.20.0"
-    //id("net.researchgate.release") version "3.0.2"
-    //id("com.github.breadmoirai.github-release") version "2.2.12"
+    id("io.gitlab.arturbosch.detekt") version "1.20.0"
+    id("net.researchgate.release") version "3.0.2"
+    id("com.github.breadmoirai.github-release") version "2.2.12"
 }
 
 group = "com.wttech.gradle.config"

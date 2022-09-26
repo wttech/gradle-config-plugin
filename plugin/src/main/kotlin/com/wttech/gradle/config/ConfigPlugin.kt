@@ -7,11 +7,5 @@ class ConfigPlugin: Plugin<Project> {
 
     override fun apply(project: Project) {
         project.extensions.create(ConfigExtension.NAME, ConfigExtension::class.java)
-
-        project.tasks.register("greeting") { task ->
-            task.doLast {
-                println("Hello from plugin 'com.wttech.config'")
-            }
-        }
     }
 }
