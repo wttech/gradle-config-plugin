@@ -60,7 +60,7 @@ class ConfigPluginTest {
                 }
             }
         }
-        """.trimIndent())
+            """.trimIndent())
 
         val result = runBuild("greeting")
         assertTrue(result.output.contains("Hello from plugin 'com.wttech.config'"))
