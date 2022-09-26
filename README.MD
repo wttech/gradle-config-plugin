@@ -6,46 +6,119 @@
 
 ## About
 
-Defining configuration for Gradle via DSL with ability to provide values with multiple input modes:
+Instead of asking build users to write magic and hard-to-remember CLI options like `-PpropName=propValue`... how about just requesting input values using GUI?
 
-- GUI 
-- CLI interactive
-- CLI non-interactive
+Plugin handles defining configuration for Gradle via DSL with ability to capture values using multiple input modes:
+
+- human friendly GUI (Mac and Window users): `sh gradlew config --gui`
+- fallback CLI (e.g for Windows & WSL): `sh gradlew config --cli`
+- static file (e.g on CI/CD systems): `sh gradlew config --file path/to/input.<yml|json>`
+
+Other concepts / features:
+
+- super flexible everything (things could be configured by functions/lambdas)
+- two-way binding between properties source values and between properties rendered on the dialog
+- easily accessible values by the Gradle build - `config["propName"]`
+- programmable visibility and enablement of property groups and fields
+- programmable default values provided to the build even if input is not yet captured
+- programmable validation
+- providing filtered values to be read by other tools (Terraform/Packer TF vars, Ansible, etc).
+
+### Example screenshot
+
+![Showcase](docs/showcase.png)
+
+### Example usage
 
 ```kotlin
+plugins {
+    id("com.wttech.config")
+}
+
 config {
-    task {
+    define {
+        label("GAT configuration")
+
+        valueSaveVisible()
+        labelAbbrs("aem")
+
         group("general") {
+            description("Infrastructure and environment type selection")
             prop("infra") {
-                value.set("aws")
-                options("aws", "gcp", "az")
+                value("aws")
+                options("local", "aws", "gcp", "az", "vagrant")
             }
             prop("envType") {
-                options.set(listOf("afe_single", "aem_single", "aem_multi"))
+                options("afe_single", "aem_single", "aem_multi")
+                visible { otherValue("infra") !in listOf("local", "vagrant")}
+                validate { "Not supported on selected infra".takeIf { groups.get().none { it.name == "remote-${otherValue("infra")}_${value()}" } } }
+            }
+            dynamicProp("domain") { "gat-${otherValue("infra")}.wttech.cloud" }
+        }
+        group("local") {
+            label("Local Env")
+            description("Environment set up directly on current machine")
+            visible { value("infra") == name }
+
+            prop("monitoringEnabled") {
+                options("true", "false")
+                checkbox()
             }
         }
-        group("aws_afe_single") {
-            label.set("Environment")
-            visible { name == "${value("infra")}_${value("envType")}" }
+        group("remote-aws_afe_single") {
+            label("Remote Env")
+            description("Dedicated env for AFE app deployed on AWS infra")
+            visible { name == "remote-${value("infra")}_${value("envType")}" }
 
             prop("env") {
-                value.set("kp")
+                value("kp")
+                alphanumeric()
             }
             prop("envMode") {
-                value.set("dev")
-                enabled { otherValue("infra") == "az"  }
+                options("dev", "stg", "prod")
+                description("Controls AEM run mode")
+                enabled { otherStringValue("env") == "kp" }
             }
             prop("aemInstancePassword") {
-                value.set("admin")
-
-                visible { otherValue("infra") == "aws" }
+                valueDynamic { otherStringValue("env")?.takeIf { it.isNotBlank() }?.let { "$it-pass" } }
+                description("Needed to access AEM admin (author & publish)")
+                required()
             }
             prop("aemProxyPassword") {
-                value.set("admin")
+                value("admin")
+                description("Needed to access AEM dispatcher pages")
+                required()
             }
             listProp("aemPackages") {
-                value.set(listOf("a", "b", "c"))
+                values("a", "b", "c")
             }
+        }
+        group("app") {
+            description("Application build settings")
+            prop("mavenArgs") {
+                value("-DskipTests")
+            }
+        }
+        group("test") {
+            description("Automated tests execution settings")
+            prop("percyToken")
+            prop("percyEnabled") {
+                checkbox()
+            }
+            dynamicProp("testBaseUrl") {
+                when (otherStringValue("infra")) {
+                    "local" -> "https://publish.local.gat.com"
+                    else -> "https://${otherValue("env")}.${otherValue("domain")}"
+                }
+            }
+        }
+    }
+}
+
+tasks {
+    register("printAemInstancePassword") {
+        doLast {
+            println(config["aemInstancePassword"])
         }
     }
 }

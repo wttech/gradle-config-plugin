@@ -7,9 +7,9 @@ plugins {
 
     id("com.gradle.plugin-publish") version "0.20.0"
     id("org.jetbrains.kotlin.jvm") version "1.6.21"
-    id("io.gitlab.arturbosch.detekt") version "1.20.0"
+    id("io.gitlab.arturbosch.detekt") version "1.21.0"
     id("net.researchgate.release") version "3.0.2"
-    id("com.github.breadmoirai.github-release") version "2.2.12"
+    id("com.github.breadmoirai.github-release") version "2.4.1"
 }
 
 group = "com.wttech.gradle.config"
@@ -85,14 +85,17 @@ tasks {
     check {
         dependsOn(testing.suites.named("functionalTest"))
     }
+    publishToMavenLocal {
+        dependsOn(jar)
+    }
     named("functionalTest") {
-        dependsOn("jar", "detektFunctionalTest")
+        dependsOn(jar, "detektFunctionalTest")
     }
     afterReleaseBuild {
-        dependsOn("publishPlugins")
+        dependsOn(publishPlugins)
     }
     named("githubRelease") {
-        mustRunAfter("release")
+        mustRunAfter(release)
     }
     register("fullRelease") {
         dependsOn("release", "githubRelease")

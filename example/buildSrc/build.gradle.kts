@@ -5,5 +5,5 @@ repositories {
 }
 
 dependencies {
-    implementation("com.wttech.gradle.config:plugin:0.0.1")
+    implementation("com.wttech.gradle.config:plugin:1.0.0-beta")
 }
