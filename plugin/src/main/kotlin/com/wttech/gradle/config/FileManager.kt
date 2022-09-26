@@ -40,6 +40,20 @@ class FileManager(val project: Project) {
         }
     }
 
+    inline fun <reified T> readJson(file: File): T {
+        if (!file.exists()) {
+            throw ConfigException("Config JSON file does not exist '$file'!")
+        }
+
+        try {
+            return file.bufferedReader().use {
+                json.get().readValue(it, T::class.java)
+            }
+        } catch (e: Exception) {
+            throw ConfigException("Config JSON file cannot be read '$file'!", e)
+        }
+    }
+
     fun writeJson(file: File, values: Map<String, Any?> = mapOf()) {
         try {
             file.apply {

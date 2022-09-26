@@ -17,8 +17,10 @@ config {
             }
             prop("envType") {
                 options("afe_single", "aem_single", "aem_multi")
+                visible { otherValue("infra") !in listOf("local", "vagrant")}
+                validate { "Not supported on selected infra".takeIf { groups.get().none { it.name == "remote-${otherValue("infra")}_${value()}" } } }
             }
-            dynamicProp("domain") { "gat-${otherStringValue("infra")}.wttech.cloud" }
+            dynamicProp("domain") { "gat-${otherValue("infra")}.wttech.cloud" }
         }
         group("local") {
             label("Local Env")

@@ -11,7 +11,7 @@ open class ConfigExtension(val project: Project) {
     }
 
     fun named(name: String) = definitions.get().firstOrNull { it.name == name }
-        ?: throw ConfigException("Config named '$name' is not defined!")
+        ?: throw ConfigException("Config '$name' is not defined!")
 
     fun define(options: Definition.() -> Unit) = define(DEFAULT_NAME, options, DEFAULT_TASK)
 
@@ -30,7 +30,7 @@ open class ConfigExtension(val project: Project) {
 
     fun fileManager() = FileManager(project)
 
-    fun read(name: String) = named(name).apply { readValues() }
+    fun read(name: String) = named(name).apply { readCapturedValues() }
 
     fun read() = read(DEFAULT_NAME)
 

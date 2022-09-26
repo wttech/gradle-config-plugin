@@ -29,6 +29,8 @@ open class Definition(val name: String, val project: Project) {
         set(InputMode.GUI)
     }
 
+    val inputFile = project.objects.fileProperty()
+
     val debug = project.objects.property(Boolean::class.java).apply {
         convention(false)
     }
@@ -117,7 +119,7 @@ open class Definition(val name: String, val project: Project) {
     fun capture() {
         lockDefinitions()
         if (debug.get()) printDefinitions()
-        readValues()
+        readCapturedValues()
         captureValues()
         if (debug.get()) printValues()
         saveValues()
@@ -140,11 +142,25 @@ open class Definition(val name: String, val project: Project) {
         println()
     }
 
-    internal fun readValues() {
+    internal fun readCapturedValues() {
         val file = outputCapturedFile.get().asFile
         if (file.exists()) {
             logger.lifecycle("Config '$name' is loading values from output file '$file'")
             values = fileManager.readYml(file)
+        }
+    }
+
+    private fun readInputValues() {
+        val file = inputFile.get().asFile
+        if (!file.exists()) {
+            throw ConfigException("Config '$name' cannot load values as input file does not exist '$file'!")
+        }
+
+        logger.lifecycle("Config '$name' is loading values from input file '$file'")
+        values = when (file.extension) {
+            "yml" -> fileManager.readYml(file)
+            "json" -> fileManager.readJson(file)
+            else -> throw ConfigException("Config '$name' cannot load values from unsupported type of input file '$file'!")
         }
     }
 
@@ -153,7 +169,7 @@ open class Definition(val name: String, val project: Project) {
         when (inputMode.get()) {
             InputMode.GUI -> Dialog.render(this)
             InputMode.CLI -> TODO("Config CLI input mode is not yet supported!")
-            InputMode.FILE -> TODO("Config file input mode is not yet supported!")
+            InputMode.FILE -> readInputValues()
             else -> throw ConfigException("Config '$name' uses unsupported input mode!")
         }
     }

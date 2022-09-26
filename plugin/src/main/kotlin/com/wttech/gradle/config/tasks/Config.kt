@@ -21,7 +21,7 @@ open class Config : DefaultTask() {
 
     @Internal
     @Option(option = "file", description = "Capture input values using file")
-    val file = project.objects.property(Boolean::class.java)
+    val file = project.objects.property(String::class.java)
 
     @Internal
     @Option(option = "debug-config", description = "Prints additional information useful in debugging")
@@ -37,7 +37,10 @@ open class Config : DefaultTask() {
         val def = definition.get()
 
         if (debug.isPresent) def.debug.set(debug.get())
-        if (file.isPresent) def.inputMode.set(InputMode.FILE)
+        if (file.isPresent) {
+            def.inputMode.set(InputMode.FILE)
+            def.inputFile.set(project.file(file.get()))
+        }
         if (cli.isPresent) def.inputMode.set(InputMode.CLI)
         if (gui.isPresent) def.inputMode.set(InputMode.GUI)
 

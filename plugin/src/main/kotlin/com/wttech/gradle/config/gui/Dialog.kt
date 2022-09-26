@@ -10,17 +10,13 @@ import com.wttech.gradle.config.prop.ListProp
 import com.wttech.gradle.config.prop.MapProp
 import com.wttech.gradle.config.prop.StringProp
 import net.miginfocom.swing.MigLayout
-import java.awt.Color
-import java.awt.Font
-import java.awt.HeadlessException
-import java.awt.Toolkit
+import java.awt.*
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import javax.swing.*
 import javax.swing.text.JTextComponent
-
 
 class Dialog(val definition: Definition) {
 
@@ -135,7 +131,7 @@ class Dialog(val definition: Definition) {
                     tab.add(JPanel(MigLayout(layoutConstraints("fill", "insets 2"))).also { groupPanel ->
                         groupPanel.add(JLabel().apply {
                             text = group.description.get()
-                            font = descriptionFont()
+                            font = scaleFont()
                         }, "wrap")
                     }, "growx, wrap, top")
                 }
@@ -146,7 +142,7 @@ class Dialog(val definition: Definition) {
                         if (!prop.description.orNull.isNullOrBlank()) {
                             propPanel.add(JLabel().apply {
                                 text = prop.description.get()
-                                font = descriptionFont()
+                                font = scaleFont()
                             }, "wrap")
                         }
                         val propField = propField(prop).apply {
@@ -166,7 +162,7 @@ class Dialog(val definition: Definition) {
                             else -> propPanel.add(propField, "w 300::, growx, wrap")
                         }
                         val validationLabel = JLabel().apply {
-                            font = descriptionFont()
+                            font = scaleFont()
                             foreground = Color(221, 76, 85) // #DD4C55
                         }
                         propPanel.add(validationLabel, "wrap")
@@ -178,8 +174,6 @@ class Dialog(val definition: Definition) {
         }
     }
 
-    private fun JLabel.descriptionFont() = Font(font.name, Font.PLAIN, (font.size.toDouble() * 0.75).toInt())
-
     private val pathChooser by lazy {
         JFileChooser().apply {
             fileSelectionMode = JFileChooser.FILES_AND_DIRECTORIES
@@ -188,7 +182,7 @@ class Dialog(val definition: Definition) {
     }
 
     @Suppress("TooGenericExceptionCaught")
-    private val pathButton = JButton("Pick a path").apply {
+    private val pathButton = JButton(ImageIcon(javaClass.getResource("/file-search.png")).scaleSize(16, 16)).apply {
         addActionListener {
             try {
                 if (pathChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION && textComponentFocused != null) {
@@ -212,14 +206,6 @@ class Dialog(val definition: Definition) {
         add(pathButton, "align right")
         add(applyButton, "align left")
         dialog.add(this, "span, growx, wrap, south")
-    }
-
-    private fun JDialog.centre() {
-        val dimension = Toolkit.getDefaultToolkit().screenSize
-        val x = ((dimension.getWidth() - width) / 2).toInt()
-        val y = ((dimension.getHeight() - height) / 2).toInt()
-
-        setLocation(x, y)
     }
 
     private var groupsVisibleOld = -1
