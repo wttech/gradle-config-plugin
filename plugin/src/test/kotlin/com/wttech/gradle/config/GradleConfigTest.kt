@@ -5,6 +5,7 @@ import org.gradle.testfixtures.ProjectBuilder
 import kotlin.test.*
 
 class GradleConfigTest {
+
     @Test
     fun `plugin registers task`() {
         val project = ProjectBuilder.builder().build()
