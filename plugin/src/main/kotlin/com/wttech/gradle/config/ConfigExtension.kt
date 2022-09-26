@@ -1,7 +1,7 @@
 package com.wttech.gradle.config
 
-import com.wttech.gradle.config.tasks.Config as ConfigTask
 import org.gradle.api.Project
+import com.wttech.gradle.config.tasks.Config as ConfigTask
 
 open class ConfigExtension(val project: Project) {
 
@@ -28,8 +28,6 @@ open class ConfigExtension(val project: Project) {
 
     fun String.invoke(options: Definition.() -> Unit) = define(this, options)
 
-    fun fileManager() = FileManager(project)
-
     fun read(name: String) = named(name).apply { readCapturedValues() }
 
     fun read() = read(DEFAULT_NAME)
@@ -49,6 +47,10 @@ open class ConfigExtension(val project: Project) {
     val jsonFile get() = get().outputJsonFile.get().asFile
 
     val ymlFile get() = get().outputYmlFile.get().asFile
+
+    val xmlFile get() = get().outputXmlFile.get().asFile
+
+    val propertiesFile get() = get().outputPropertiesFile.get().asFile
 
     companion object {
         const val NAME = "config"

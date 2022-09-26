@@ -4,6 +4,7 @@ import com.wttech.gradle.config.gui.Dialog
 import com.wttech.gradle.config.util.capitalLetter
 import com.wttech.gradle.config.util.capitalWords
 import org.gradle.api.Project
+import java.io.File
 
 open class Definition(val name: String, val project: Project) {
 
@@ -11,7 +12,7 @@ open class Definition(val name: String, val project: Project) {
 
     val settings by lazy { project.extensions.getByType(ConfigExtension::class.java) }
 
-    val fileManager by lazy { settings.fileManager() }
+    val fileManager by lazy { FileManager(this) }
 
     fun fileManager(options: FileManager.() -> Unit) {
         fileManager.apply(options)
@@ -44,15 +45,23 @@ open class Definition(val name: String, val project: Project) {
     }
 
     val outputCapturedFile = project.objects.fileProperty().apply {
-        set(outputDir.map { it.file("$name.captured.yml")})
+        set(outputDir.map { it.file("$name.captured.yml") })
     }
 
     val outputYmlFile = project.objects.fileProperty().apply {
-        set(outputDir.map { it.file("$name.yml")})
+        set(outputDir.map { it.file("$name.yml") })
     }
 
     val outputJsonFile = project.objects.fileProperty().apply {
-        set(outputDir.map { it.file("$name.json")})
+        set(outputDir.map { it.file("$name.json") })
+    }
+
+    val outputXmlFile = project.objects.fileProperty().apply {
+        set(outputDir.map { it.file("$name.xml") })
+    }
+
+    val outputPropertiesFile = project.objects.fileProperty().apply {
+        set(outputDir.map { it.file("$name.properties") })
     }
 
     // TODO deal with loading in build/tasks in GAT
@@ -61,7 +70,7 @@ open class Definition(val name: String, val project: Project) {
     }
 
     val groups = project.objects.listProperty(Group::class.java)
-    
+
     fun group(groupName: String, options: Group.() -> Unit) {
         groups.add(project.provider { Group(this, groupName).apply(options) })
     }
@@ -145,7 +154,7 @@ open class Definition(val name: String, val project: Project) {
     internal fun readCapturedValues() {
         val file = outputCapturedFile.get().asFile
         if (file.exists()) {
-            logger.lifecycle("Config '$name' is loading values from output file '$file'")
+            logger.lifecycle("Config '$name' is reading values from file '$file'")
             values = fileManager.readYml(file)
         }
     }
@@ -153,14 +162,14 @@ open class Definition(val name: String, val project: Project) {
     private fun readInputValues() {
         val file = inputFile.get().asFile
         if (!file.exists()) {
-            throw ConfigException("Config '$name' cannot load values as input file does not exist '$file'!")
+            throw ConfigException("Config '$name' cannot read values as input file does not exist '$file'!")
         }
 
-        logger.lifecycle("Config '$name' is loading values from input file '$file'")
+        logger.lifecycle("Config '$name' is reading values from input file '$file'")
         values = when (file.extension) {
             "yml" -> fileManager.readYml(file)
             "json" -> fileManager.readJson(file)
-            else -> throw ConfigException("Config '$name' cannot load values from unsupported type of input file '$file'!")
+            else -> throw ConfigException("Config '$name' cannot read values from unsupported type of input file '$file'!")
         }
     }
 
@@ -180,16 +189,22 @@ open class Definition(val name: String, val project: Project) {
     }
 
     private fun saveValues() {
-        val ymlCached = outputCapturedFile.asFile.get()
-        logger.lifecycle("Config '$name' is saving captured values to file '$ymlCached'")
-        fileManager.writeYml(ymlCached, values)
+        outputCapturedFile.asFile.get().let { saveValues(it, true) { fileManager.writeYml(it, values) } }
+        outputYmlFile.asFile.get().let { saveValues(it) { fileManager.writeYml(it, valuesSaved) } }
+        outputJsonFile.asFile.get().let { saveValues(it) { fileManager.writeJson(it, valuesSaved) } }
+        outputPropertiesFile.asFile.get().let { saveValues(it) { fileManager.writeProperties(it, valuesSaved) } }
+        outputXmlFile.asFile.get().let { saveValues(it) { fileManager.writeXml(it, valuesSaved) } }
+    }
 
-        val ymlFiltered = outputYmlFile.asFile.get()
-        logger.lifecycle("Config '$name' is saving filtered values to file '$ymlFiltered'")
-        fileManager.writeYml(ymlFiltered, valuesSaved)
-
-        val jsonFiltered = outputJsonFile.asFile.get()
-        logger.lifecycle("Config '$name' is saving filtered values to file '$jsonFiltered'")
-        fileManager.writeJson(jsonFiltered, valuesSaved)
+    private fun saveValues(file: File, verbose: Boolean = false, saver: () -> Unit) {
+        try {
+            logger.lifecycle("Config '$name' is saving values to file '$file'")
+            saver()
+        } catch (e: Exception) {
+            when {
+                verbose -> throw ConfigException("Config '$name' could not save values to file '$file'! Cause: ${e.message}", e)
+                else -> logger.warn("Config '$name' could not save values to file '$file'!", e)
+            }
+        }
     }
 }

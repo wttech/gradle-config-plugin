@@ -28,7 +28,6 @@ config {
             visible { value("infra") == name }
 
             prop("monitoringEnabled") {
-                options("true", "false")
                 checkbox()
             }
         }

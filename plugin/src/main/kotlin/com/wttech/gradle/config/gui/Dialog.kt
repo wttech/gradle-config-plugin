@@ -146,7 +146,7 @@ class Dialog(val definition: Definition) {
                             }, "wrap")
                         }
                         val propField = propField(prop).apply {
-                            addFocusListener(object: FocusListener {
+                            addFocusListener(object : FocusListener {
                                 override fun focusGained(e: FocusEvent) {
                                     when (this@apply) {
                                         is JTextComponent -> textComponentFocused = this@apply
@@ -215,7 +215,9 @@ class Dialog(val definition: Definition) {
      * As a workaround, only visible tabs are recreated.
      * At the same time, recreation is avoided because field focus is lost.
      */
-    fun updateGroupTabs() {
+    fun updateGroupTabs(): Boolean {
+        var updated = false
+
         val groupsVisible = definition.groups.get().filter { it.visible.get() }
         val groupsVisibleNew = groupsVisible.map { Pair(it.name, it.visible.get()) }.hashCode()
         if (groupsVisibleOld != groupsVisibleNew) {
@@ -224,11 +226,14 @@ class Dialog(val definition: Definition) {
                 tabPane.addTab(groupTab.group.label.get(), groupTab.panel)
             }
             groupsVisibleOld = groupsVisibleNew
+            updated = true
         }
 
         groupTabs.filter { it.group.visible.get() }.forEachIndexed { index, groupTab ->
             tabPane.setEnabledAt(index, groupTab.group.enabled.get())
         }
+
+        return updated
     }
 
     fun updatePropPanels() {
@@ -263,12 +268,13 @@ class Dialog(val definition: Definition) {
     }
 
     fun render(initial: Boolean = false) {
-        updateGroupTabs()
+        val groupTabsUpdated = updateGroupTabs()
         updatePropPanels()
         updateActionPanel()
 
-        dialog.pack()
+        if (initial || groupTabsUpdated) dialog.pack()
         if (initial) dialog.centre()
+
         dialog.isVisible = true
     }
 
@@ -280,7 +286,7 @@ class Dialog(val definition: Definition) {
     companion object {
 
         private const val TROUBLESHOOTING = "Please run 'sh gradlew --stop' then try again.\n" +
-                "Ultimately run command with '--no-daemon' option."
+            "Ultimately run command with '--no-daemon' option."
 
         @Suppress("TooGenericExceptionCaught")
         fun render(definition: Definition) {
@@ -288,7 +294,7 @@ class Dialog(val definition: Definition) {
             try {
                 FlatLightLaf.setup()
                 val dialog = Dialog(definition)
-                dialog.render(true)
+                dialog.render(initial = true)
                 if (dialog.cancelled) {
                     cancelled = true
                 }

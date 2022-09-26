@@ -3,7 +3,7 @@ package com.wttech.gradle.config.prop
 import com.wttech.gradle.config.Group
 import com.wttech.gradle.config.Prop
 
-class MapProp(group: Group, name: String): Prop(group, name) {
+class MapProp(group: Group, name: String) : Prop(group, name) {
 
     private val project = group.project
 

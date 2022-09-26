@@ -63,20 +63,20 @@ abstract class Prop(val group: Group, val name: String) {
 
     val string: StringProp
         get() = when (this) {
-        is StringProp -> this
-        else -> throw ConfigException("Config prop '$name' is not a string!")
-    }
+            is StringProp -> this
+            else -> throw ConfigException("Config prop '$name' is not a string!")
+        }
     val list: ListProp
         get() = when (this) {
-        is ListProp -> this
-        else -> throw ConfigException("Config prop '$name' is not a list!")
-    }
+            is ListProp -> this
+            else -> throw ConfigException("Config prop '$name' is not a list!")
+        }
 
     val map: MapProp
         get() = when (this) {
-        is MapProp -> this
-        else -> throw ConfigException("Config prop '$name' is not a map!")
-    }
+            is MapProp -> this
+            else -> throw ConfigException("Config prop '$name' is not a map!")
+        }
 
     val stringValue get() = string.value()
 

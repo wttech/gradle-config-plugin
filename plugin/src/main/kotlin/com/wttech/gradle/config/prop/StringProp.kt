@@ -3,7 +3,7 @@ package com.wttech.gradle.config.prop
 import com.wttech.gradle.config.Group
 import com.wttech.gradle.config.Prop
 
-class StringProp(group: Group, name: String): Prop(group, name) {
+class StringProp(group: Group, name: String) : Prop(group, name) {
 
     private val project = group.project
 
@@ -44,7 +44,10 @@ class StringProp(group: Group, name: String): Prop(group, name) {
     fun valueTypeString() { valueType.set(ValueType.STRING) }
     fun valueTypeInt() { valueType.set(ValueType.INT) }
     fun valueTypeDouble() { valueType.set(ValueType.DOUBLE) }
-    fun valueTypeBool() { valueType.set(ValueType.BOOL) }
+    fun valueTypeBool() {
+        valueType.set(ValueType.BOOL)
+        options.set(listOf(true.toString(), false.toString()))
+    }
 
     private var valueDynamic: (String?) -> String? = { it }
 

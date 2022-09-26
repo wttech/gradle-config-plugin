@@ -3,7 +3,7 @@ package com.wttech.gradle.config.prop
 import com.wttech.gradle.config.Group
 import com.wttech.gradle.config.Prop
 
-class ConstProp(group: Group, name: String): Prop(group, name) {
+class ConstProp(group: Group, name: String) : Prop(group, name) {
 
     private var valueProvider: () -> Any? = {}
 

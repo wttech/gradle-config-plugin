@@ -2,12 +2,16 @@ package com.wttech.gradle.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
-import org.gradle.api.Project
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
 import java.io.File
+import java.io.InputStream
+import java.io.OutputStream
+import java.util.Properties
 
-class FileManager(val project: Project) {
+class FileManager(val definition: Definition) {
+
+    private val project = definition.project
 
     val yaml = project.objects.property(Yaml::class.java).apply {
         convention(project.provider {
@@ -24,57 +28,49 @@ class FileManager(val project: Project) {
         convention(project.provider {
             ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT)
         })
+        finalizeValueOnRead()
     }
 
-    fun <T> readYml(file: File): T {
+    inline fun <reified T> readYml(file: File): T = readFile(file) { yaml.get().load(it) }
+
+    inline fun <reified T> readJson(file: File) = readFile(file) { json.get().readValue(it.bufferedReader(), T::class.java) }
+
+    inline fun <reified T> readFile(file: File, reader: (InputStream) -> T): T {
+        val ext = file.extension.uppercase()
         if (!file.exists()) {
-            throw ConfigException("Config YML file does not exist '$file'!")
+            throw ConfigException("Config $ext file does not exist '$file'!")
         }
-
         try {
-            return file.bufferedReader().use {
-                yaml.get().load(it)
-            }
+            return file.inputStream().use(reader)
         } catch (e: Exception) {
-            throw ConfigException("Config YML file cannot be read '$file'!", e)
+            throw ConfigException("Config $ext file cannot be read '$file'!", e)
         }
     }
 
-    inline fun <reified T> readJson(file: File): T {
-        if (!file.exists()) {
-            throw ConfigException("Config JSON file does not exist '$file'!")
-        }
+    fun writeJson(file: File, values: Map<String, Any?>) = writeFile(file) { json.get().writeValue(it, values) }
 
-        try {
-            return file.bufferedReader().use {
-                json.get().readValue(it, T::class.java)
-            }
-        } catch (e: Exception) {
-            throw ConfigException("Config JSON file cannot be read '$file'!", e)
+    fun writeYml(file: File, values: Map<String, Any?>) = writeFile(file) { yaml.get().dump(values, it.bufferedWriter()) }
+
+    fun writeXml(file: File, values: Map<String, Any?>) = writeFile(file) {
+        Properties().apply {
+            putAll(values.mapValues { it.value.toString() })
+            storeToXML(it, "config - ${definition.name}")
         }
     }
 
-    fun writeJson(file: File, values: Map<String, Any?> = mapOf()) {
-        try {
-            file.apply {
-                parentFile.mkdirs()
-            }.bufferedWriter().use { out ->
-                json.get().writeValue(out, values)
-            }
-        } catch (e: Exception) {
-            throw ConfigException("Config JSON file cannot be saved '$file'!", e)
+    fun writeProperties(file: File, values: Map<String, Any?>) = writeFile(file) {
+        Properties().apply {
+            putAll(values.mapValues { it.value.toString() })
+            store(it, "config - ${definition.name}")
         }
     }
 
-    fun writeYml(file: File, values: Map<String, Any?> = mapOf()) {
+    private fun writeFile(file: File, writer: (OutputStream) -> Unit) {
+        val ext = file.extension.uppercase()
         try {
-            file.apply {
-                parentFile.mkdirs()
-            }.bufferedWriter().use { out ->
-                yaml.get().dump(values, out)
-            }
+            file.apply { parentFile.mkdirs() }.outputStream().use(writer)
         } catch (e: Exception) {
-            throw ConfigException("Config YML file cannot be saved '$file'!", e)
+            throw ConfigException("Config $ext file cannot be saved '$file'!", e)
         }
     }
 }
