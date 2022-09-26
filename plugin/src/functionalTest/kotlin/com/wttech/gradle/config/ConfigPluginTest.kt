@@ -1,11 +1,12 @@
 package com.wttech.gradle.config
 
-import kotlin.test.Test
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import kotlin.test.Test
 import kotlin.test.assertContains
 
+@Suppress("MaxLineLength", "LongMethod")
 class ConfigPluginTest {
 
     @get:Rule val tempFolder = TemporaryFolder()

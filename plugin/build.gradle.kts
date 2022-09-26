@@ -13,14 +13,14 @@ plugins {
 }
 
 group = "com.wttech.gradle.config"
-//description = "Gradle Config Plugin"
+description = "Gradle Config Plugin"
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    //detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.20.0")
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.20.0")
 
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
@@ -31,12 +31,10 @@ dependencies {
     implementation("com.formdev:flatlaf:2.4")
 }
 
-/*
 java {
     withJavadocJar()
     withSourcesJar()
 }
-*/
 
 testing {
     suites {
@@ -58,7 +56,6 @@ testing {
     }
 }
 
-/*
 detekt {
     config.from(rootProject.file("detekt.yml"))
     parallel = true
@@ -102,13 +99,13 @@ tasks {
     }
 }
 
-*/
-
 gradlePlugin {
     plugins {
         create("config") {
             id = "com.wttech.config"
             implementationClass = "com.wttech.gradle.config.ConfigPlugin"
+            displayName = "Config Plugin"
+            description = "Organizes and captures configurable input values to your Gradle builds using interactive inputs (GUI/CLI)"
         }
     }
 }
