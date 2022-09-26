@@ -35,6 +35,7 @@ class FileManager(val definition: Definition) {
 
     inline fun <reified T> readJson(file: File) = readFile(file) { json.get().readValue(it.bufferedReader(), T::class.java) }
 
+    @Suppress("TooGenericExceptionCaught")
     inline fun <reified T> readFile(file: File, reader: (InputStream) -> T): T {
         val ext = file.extension.uppercase()
         if (!file.exists()) {
@@ -65,6 +66,7 @@ class FileManager(val definition: Definition) {
         }
     }
 
+    @Suppress("TooGenericExceptionCaught")
     private fun writeFile(file: File, writer: (OutputStream) -> Unit) {
         val ext = file.extension.uppercase()
         try {

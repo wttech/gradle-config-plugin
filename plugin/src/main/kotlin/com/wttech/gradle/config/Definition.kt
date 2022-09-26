@@ -1,6 +1,6 @@
 package com.wttech.gradle.config
 
-import com.wttech.gradle.config.gui.Dialog
+import com.wttech.gradle.config.gui.Gui
 import com.wttech.gradle.config.util.capitalLetter
 import com.wttech.gradle.config.util.capitalWords
 import org.gradle.api.Project
@@ -176,7 +176,7 @@ open class Definition(val name: String, val project: Project) {
     fun captureValues() {
         logger.lifecycle("Config '$name' is capturing values using input mode '${inputMode.get()}'")
         when (inputMode.get()) {
-            InputMode.GUI -> Dialog.render(this)
+            InputMode.GUI -> Gui.render(this)
             InputMode.CLI -> TODO("Config CLI input mode is not yet supported!")
             InputMode.FILE -> readInputValues()
             else -> throw ConfigException("Config '$name' uses unsupported input mode!")
@@ -200,10 +200,10 @@ open class Definition(val name: String, val project: Project) {
         try {
             logger.lifecycle("Config '$name' is saving values to file '$file'")
             saver()
-        } catch (e: Exception) {
+        } catch (e: ConfigException) {
             when {
-                verbose -> throw ConfigException("Config '$name' could not save values to file '$file'! Cause: ${e.message}", e)
-                else -> logger.warn("Config '$name' could not save values to file '$file'!", e)
+                verbose -> throw e
+                else -> logger.warn(e.message, e)
             }
         }
     }

@@ -18,7 +18,8 @@ import java.awt.event.WindowEvent
 import javax.swing.*
 import javax.swing.text.JTextComponent
 
-class Dialog(val definition: Definition) {
+@Suppress("UnusedPrivateMember", "MagicNumber")
+class Gui(val definition: Definition) {
 
     private val logger = definition.project.logger
 
@@ -57,6 +58,7 @@ class Dialog(val definition: Definition) {
     class PropPanel(val data: Prop, val container: JPanel, val field: JComponent, val validation: JLabel)
     private val propPanels = mutableListOf<PropPanel>()
 
+    @Suppress("NestedBlockDepth")
     private fun propField(prop: Prop): JComponent = when (prop) {
         is StringProp -> {
             if (prop.options.get().isEmpty()) {
@@ -259,6 +261,7 @@ class Dialog(val definition: Definition) {
         }
     }
 
+    @Suppress("TooGenericExceptionCaught")
     private fun tryMutate(action: () -> Unit) {
         try {
             action()
@@ -293,9 +296,9 @@ class Dialog(val definition: Definition) {
             var cancelled = false
             try {
                 FlatLightLaf.setup()
-                val dialog = Dialog(definition)
-                dialog.render(initial = true)
-                if (dialog.cancelled) {
+                val gui = Gui(definition)
+                gui.render(initial = true)
+                if (gui.cancelled) {
                     cancelled = true
                 }
             } catch (e: HeadlessException) {

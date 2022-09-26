@@ -97,12 +97,28 @@ abstract class Prop(val group: Group, val name: String) {
     override fun toString() = "Prop(group=${group.name}, name=$name, value=${value()}, visible=${visible.get()}, enabled=${enabled.get()})"
 
     override fun hashCode(): Int {
-        var result = group.hashCode()
+        var result = group.name.hashCode()
         result = 31 * result + name.hashCode()
         result = 31 * result + (label.orNull?.hashCode() ?: 0)
         result = 31 * result + (description.orNull?.hashCode() ?: 0)
         result = 31 * result + (visible.orNull?.hashCode() ?: 0)
         result = 31 * result + (enabled.orNull?.hashCode() ?: 0)
         return result
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Prop
+
+        if (group.name != other.group.name) return false
+        if (name != other.name) return false
+        if (label.orNull != other.label.orNull) return false
+        if (description.orNull != other.description.orNull) return false
+        if (visible.orNull != other.visible.orNull) return false
+        if (enabled.orNull != other.enabled.orNull) return false
+
+        return true
     }
 }
