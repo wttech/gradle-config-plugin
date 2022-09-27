@@ -1,5 +1,6 @@
 package com.wttech.gradle.config
 
+import com.wttech.gradle.config.tpl.TemplateEngine
 import org.gradle.api.Project
 import com.wttech.gradle.config.tasks.Config as ConfigTask
 
@@ -51,6 +52,12 @@ open class ConfigExtension(val project: Project) {
     val jsonFile get() = get().outputJsonFile
 
     val propertiesFile get() = get().outputPropertiesFile
+
+    // Utilities
+
+    fun fileManager() = FileManager(project)
+
+    fun templateEngine() = TemplateEngine(project)
 
     companion object {
         const val NAME = "config"

@@ -1,0 +1,10 @@
+release.useAutomaticVersion=true
+
+# Performance tuning
+org.gradle.daemon=true
+org.gradle.parallel=true
+org.gradle.caching=true
+org.gradle.jvmargs=-Xmx3072m -XX:MaxPermSize=512m -Dfile.encoding=UTF-8
+
+# Gradle AEM Plugin
+package.manager.deployAvoidance={{ packageManagerDeployAvoidance }}

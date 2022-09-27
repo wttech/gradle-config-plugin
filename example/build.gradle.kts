@@ -1,5 +1,6 @@
 plugins {
     id("com.wttech.config")
+    id("net.researchgate.release") version "3.0.2"
 }
 
 config {
@@ -12,6 +13,7 @@ config {
         valueSaveJson()
         valueSaveXml()
         valueSaveProperties()
+        valueSaveGradleProperties()
 
         labelAbbrs("aem")
 
@@ -70,6 +72,10 @@ config {
             prop("mavenArgs") {
                 value("-DskipTests")
             }
+            prop("packageManagerDeployAvoidance") {
+                description("When package is unchanged do not upload & install it again")
+                checkbox()
+            }
         }
         group("test") {
             description("Automated tests execution settings")
@@ -85,6 +91,10 @@ config {
             }
         }
     }
+}
+
+release {
+    versionPropertyFile.set("version.properties")
 }
 
 tasks {

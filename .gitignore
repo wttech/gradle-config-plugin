@@ -157,3 +157,4 @@ nbdist/
 classes/
 .idea/*
 !.idea/runConfigurations
+example/gradle.properties

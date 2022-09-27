@@ -2,6 +2,7 @@ package com.wttech.gradle.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import org.gradle.api.Project
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
 import java.io.File
@@ -9,9 +10,7 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.util.Properties
 
-class FileManager(val definition: Definition) {
-
-    private val project = definition.project
+class FileManager(val project: Project) {
 
     val yaml = project.objects.property(Yaml::class.java).apply {
         convention(project.provider {
@@ -55,14 +54,14 @@ class FileManager(val definition: Definition) {
     fun writeXml(file: File, values: Map<String, Any?>) = writeFile(file) {
         Properties().apply {
             putAll(values.mapValues { it.value.toString() })
-            storeToXML(it, "config - ${definition.name}")
+            storeToXML(it, null)
         }
     }
 
     fun writeProperties(file: File, values: Map<String, Any?>) = writeFile(file) {
         Properties().apply {
             putAll(values.mapValues { it.value.toString() })
-            store(it, "config - ${definition.name}")
+            store(it, null)
         }
     }
 

@@ -1,6 +1,7 @@
 package com.wttech.gradle.config
 
 import com.wttech.gradle.config.gui.Gui
+import com.wttech.gradle.config.tpl.TemplateEngine
 import com.wttech.gradle.config.util.capitalLetter
 import com.wttech.gradle.config.util.capitalWords
 import org.gradle.api.Project
@@ -11,10 +12,16 @@ open class Definition(val name: String, val project: Project) {
 
     val settings by lazy { project.extensions.getByType(ConfigExtension::class.java) }
 
-    val fileManager by lazy { FileManager(this) }
+    val fileManager by lazy { FileManager(project) }
 
     fun fileManager(options: FileManager.() -> Unit) {
         fileManager.apply(options)
+    }
+
+    val templateEngine by lazy { TemplateEngine(project) }
+
+    fun templateEngine(options: TemplateEngine.() -> Unit) {
+        templateEngine.apply(options)
     }
 
     val label = project.objects.property(String::class.java).apply {
@@ -196,6 +203,14 @@ open class Definition(val name: String, val project: Project) {
 
     fun valueSaveJson() = valueSave {
         fileManager.writeJson(outputJsonFile, valuesSaved)
+    }
+
+    fun valueSaveGradleProperties() = valueSave {
+        val template = project.rootProject.file("gradle.properties.peb")
+        val target = project.rootProject.file("gradle.properties")
+
+        logger.info("Config '$name' is saving Gradle properties file '$target'.\nEnsure having it ignored by version control system (like Git)!")
+        templateEngine.renderFile(template, target, valuesSaved)
     }
 
     @Suppress("TooGenericException")
