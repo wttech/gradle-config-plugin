@@ -9,8 +9,10 @@ class Group(val definition: Definition, val name: String) {
     val project = definition.project
 
     val label = project.objects.property(String::class.java).apply {
-        convention(project.provider { definition.composeLabel(name) })
+        convention(project.provider { proposeLabel() })
     }
+
+    fun proposeLabel() = definition.composeLabel(name)
 
     fun label(text: String) {
         label.set(text)

@@ -86,6 +86,10 @@ class StringProp(group: Group, name: String) : Prop(group, name) {
 
     fun alphanumeric() = validate { "Should be alphanumeric".takeUnless { checkRegex("^[a-zA-Z0-9]+$") } }
 
+    fun alphanumericDash() = validate { "Should contain alphanumeric and dash characters".takeUnless { checkRegex("^[a-zA-Z0-9-]+$") } }
+
+    fun alphanumericUnderscore() = validate { "Should contain alphanumeric and underscore characters".takeUnless { checkRegex("^[a-zA-Z0-9_]+$") } }
+
     fun alphanumericDashUnderscore() = validate { "Should contain alphanumeric, dash and underscore characters".takeUnless { checkRegex("^[a-zA-Z0-9-_]+$") } }
 
     fun numeric() = validate { "Should be numeric".takeUnless { checkRegex("^[0-9]+$") } }
