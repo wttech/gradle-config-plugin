@@ -38,6 +38,14 @@ abstract class Prop(val group: Group, val name: String) {
         enabled.set(project.provider { predicate() })
     }
 
+    fun enabled() {
+        enabled.set(true)
+    }
+
+    fun disabled() {
+        enabled.set(false)
+    }
+
     private var validator: (() -> String?) = { null }
 
     val validation get() = validator()

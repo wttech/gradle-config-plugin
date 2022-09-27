@@ -33,15 +33,29 @@ open class ConfigExtension(val project: Project) {
 
     fun read() = read(DEFAULT_NAME)
 
-    operator fun get(name: String) = value(name)
+    operator fun get(name: String) = valueOrNull(name)
 
-    fun value(propName: String) = read().value(propName)
+    val values get() = get().values
 
-    fun stringValue(propName: String) = read().stringValue(propName)
+    fun value(propName: String) = valueOrNull(propName)
+        ?: throw ConfigException("Config prop '$propName' is null!")
 
-    fun listValue(propName: String) = read().listValue(propName)
+    fun valueOrNull(propName: String) = read().value(propName)
 
-    fun mapValue(propName: String) = read().mapValue(propName)
+    fun stringValue(propName: String) = stringValueOrNull(propName)
+        ?: throw ConfigException("Config string prop '$propName' is null!")
+
+    fun stringValueOrNull(propName: String) = read().stringValue(propName)
+
+    fun listValue(propName: String) = listValueOrNull(propName)
+        ?: throw ConfigException("Config list prop '$propName' is null!")
+
+    fun listValueOrNull(propName: String) = read().listValue(propName)
+
+    fun mapValue(propName: String) = mapValueOrNull(propName)
+        ?: throw ConfigException("Config map prop '$propName' is null!")
+
+    fun mapValueOrNull(propName: String) = read().mapValue(propName)
 
     fun get() = named(DEFAULT_NAME)
 
@@ -65,5 +79,10 @@ open class ConfigExtension(val project: Project) {
         const val DEFAULT_TASK = "config"
 
         const val DEFAULT_NAME = "default"
+
+        fun of(project: Project) = project.rootProject.extensions.findByType(ConfigExtension::class.java)
+            ?: error("Config plugin with ID '${ConfigPlugin.ID}' is not applied at the root of the build!")
     }
 }
+
+val Project.config get() = ConfigExtension.of(this)
