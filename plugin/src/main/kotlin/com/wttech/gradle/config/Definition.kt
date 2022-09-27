@@ -89,15 +89,7 @@ open class Definition(val name: String, val project: Project) {
         get() = props.associate { it.name to it.value() }
         set(vs) { vs.forEach { (k, v) -> findProp(k)?.value(v) } }
 
-    private var valueSaveFilter: Prop.() -> Boolean = { group.visible.get() && visible.get() }
-
-    fun valueSaveAll() = valueSaveFilter { true }
-
-    fun valueSaveVisible() = valueSaveFilter { group.visible.get() && visible.get() }
-
-    fun valueSaveEnabled() = valueSaveFilter { group.enabled.get() && enabled.get() }
-
-    fun valueSaveEnabledAndVisible() = valueSaveFilter { group.visible.get() && visible.get() }
+    private var valueSaveFilter: Prop.() -> Boolean = { true }
 
     fun valueSaveFilter(predicate: Prop.() -> Boolean) {
         this.valueSaveFilter = predicate

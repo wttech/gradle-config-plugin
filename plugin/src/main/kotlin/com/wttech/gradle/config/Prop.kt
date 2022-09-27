@@ -61,7 +61,7 @@ abstract class Prop(val group: Group, val name: String) {
 
     val validation get() = validator()
 
-    val valid get() = !visible.get() || !enabled.get() || (validation == null)
+    val valid get() = !visible.get() || (validation == null)
 
     fun validate(validator: () -> String?) {
         this.validator = validator

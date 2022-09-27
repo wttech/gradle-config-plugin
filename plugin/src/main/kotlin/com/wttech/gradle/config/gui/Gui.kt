@@ -30,7 +30,7 @@ class Gui(val definition: Definition) {
 
     private val dialog = JDialog().apply {
         title = definition.label.get()
-        layout = MigLayout(layoutConstraints("fill, w :640:, h :480:"))
+        layout = MigLayout(layoutConstraints("fill"))
         isAlwaysOnTop = true
         isModal = true
         isResizable = true
@@ -61,7 +61,10 @@ class Gui(val definition: Definition) {
     private fun propField(prop: Prop): JComponent = when (prop) {
         is StringProp -> {
             if (prop.options.get().isEmpty()) {
-                JTextField().apply {
+                when (prop.valueType.get()) {
+                    StringProp.ValueType.PASSWORD -> JPasswordField()
+                    else -> JTextField()
+                }.apply {
                     Bindings.bind(this, object : PropValueModel() {
                         override fun getValue() = prop.stringValue
                         override fun updateValue(v: Any?) { prop.value(v?.toString()) }
@@ -129,9 +132,9 @@ class Gui(val definition: Definition) {
         dialog.add(tabs, "grow, span, wrap")
 
         definition.groups.get().forEach { group ->
-            val panel = JPanel(MigLayout(layoutConstraints("fillx", "insets 5"))).also { tab ->
+            val panel = JPanel(MigLayout(layoutConstraints("fillx", "insets 10"))).also { tab ->
                 if (!group.description.orNull.isNullOrBlank()) {
-                    tab.add(JPanel(MigLayout(layoutConstraints("fill", "insets 2"))).also { groupPanel ->
+                    tab.add(JPanel(MigLayout(layoutConstraints("fill", "insets 1"))).also { groupPanel ->
                         groupPanel.add(JLabel().apply {
                             text = group.description.get()
                             font = scaleFont()
@@ -140,7 +143,7 @@ class Gui(val definition: Definition) {
                 }
 
                 group.props.get().forEach { prop: Prop ->
-                    tab.add(JPanel(MigLayout(layoutConstraints("fill", "insets 2"))).also { propPanel ->
+                    tab.add(JPanel(MigLayout(layoutConstraints("fill", "insets 1"))).also { propPanel ->
                         propPanel.add(JLabel(prop.label.get()), "wrap")
                         if (!prop.description.orNull.isNullOrBlank()) {
                             propPanel.add(JLabel().apply {

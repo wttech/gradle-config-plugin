@@ -33,16 +33,20 @@ class StringProp(group: Group, name: String) : Prop(group, name) {
         optionsStyle.set(OptionsStyle.SELECT)
     }
 
+    fun password() = valueTypePassword()
+
     val valueType = project.objects.property(ValueType::class.java).convention(ValueType.STRING)
 
     enum class ValueType {
         STRING,
+        PASSWORD,
         INT,
         DOUBLE,
         BOOL
     }
 
     fun valueTypeString() { valueType.set(ValueType.STRING) }
+    fun valueTypePassword() { valueType.set(ValueType.PASSWORD) }
     fun valueTypeInt() { valueType.set(ValueType.INT) }
     fun valueTypeDouble() { valueType.set(ValueType.DOUBLE) }
     fun valueTypeBool() {
@@ -99,4 +103,11 @@ class StringProp(group: Group, name: String) : Prop(group, name) {
     fun alpha() = validate { "Should contain only alphabetic characters".takeUnless { checkRegex("^[a-zA-Z0-9]+$") } }
 
     fun checkRegex(regex: String) = value().orEmpty().let { Regex(regex).matches(it) }
+
+    init {
+        when {  // name-based smart defaults
+            listOf("token", "password", "key").any { name.endsWith(it, true) } -> password()
+            listOf("enabled", "disabled").any { name.endsWith(it, true) } -> checkbox()
+        }
+    }
 }
