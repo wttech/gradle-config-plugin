@@ -219,8 +219,8 @@ open class Definition(val name: String, val project: Project) {
     }
 
     fun valueSaveGradleProperties() = valueSave {
-        val template = project.rootProject.file("gradle.properties.peb")
-        val target = project.rootProject.file("gradle.properties")
+        val template = project.file("gradle.properties.peb")
+        val target = project.file("gradle.properties")
 
         logger.info("Config '$name' is saving Gradle properties file '$target'.\nEnsure having it ignored by version control system (like Git)!")
         templateEngine.renderFile(template, target, valuesSaved)
