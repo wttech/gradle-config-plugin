@@ -28,7 +28,7 @@ config {
                 visible { otherValue("infra") !in listOf("local", "vagrant")}
                 validate { "Not supported on selected infra".takeIf { groups.get().none { it.name == "remote-${otherValue("infra")}_${value()}" } } }
             }
-            dynamicProp("domain") { "gat-${otherValue("infra")}.wttech.cloud" }
+            const("domain") { "gat-${value("infra")}.wttech.cloud" }
         }
         group("local") {
             label("Local Env")
@@ -83,10 +83,10 @@ config {
             prop("percyEnabled") {
                 checkbox()
             }
-            dynamicProp("testBaseUrl") {
-                when (otherStringValue("infra")) {
+            const("testBaseUrl") {
+                when (stringValue("infra")) {
                     "local" -> "https://publish.local.gat.com"
-                    else -> "https://${otherValue("env")}.${otherValue("domain")}"
+                    else -> "https://${value("env")}.${value("domain")}"
                 }
             }
         }

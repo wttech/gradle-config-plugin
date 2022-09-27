@@ -1,6 +1,5 @@
 package com.wttech.gradle.config
 
-import com.wttech.gradle.config.prop.ConstProp
 import com.wttech.gradle.config.prop.ListProp
 import com.wttech.gradle.config.prop.MapProp
 import com.wttech.gradle.config.prop.StringProp
@@ -39,29 +38,29 @@ class Group(val definition: Definition, val name: String) {
 
     fun prop(name: String, options: StringProp.() -> Unit = {}) = stringProp(name, options)
 
+    fun const(name: String, value: String?) = stringConst(name, value)
+    fun const(name: String, valueProvider: () -> String?) = stringConst(name, valueProvider)
+
     fun stringProp(name: String, options: StringProp.() -> Unit = {}) {
         props.add(project.provider { StringProp(this, name).apply(options) })
     }
+
+    fun stringConst(name: String, value: String?) = stringProp(name) { const(); value(value) }
+    fun stringConst(name: String, valueProvider: () -> String?) = stringProp(name) { const(); value.set(project.provider(valueProvider)) }
 
     fun listProp(name: String, options: ListProp.() -> Unit = {}) {
         props.add(project.provider { ListProp(this, name).apply(options) })
     }
 
+    fun listConst(name: String, value: Any?) = listProp(name) { const(); value(value) }
+    fun listConst(name: String, valueProvider: () -> List<String>?) = listProp(name) { const(); value.set(project.provider(valueProvider)) }
+
     fun mapProp(name: String, options: MapProp.() -> Unit = {}) {
         props.add(project.provider { MapProp(this, name).apply(options) })
     }
 
-    private fun constProp(name: String, options: ConstProp.() -> Unit = {}) {
-        props.add(project.provider { ConstProp(this, name).apply(options) })
-    }
-
-    fun staticProp(name: String, value: Any?) = constProp(name) {
-        value(value)
-    }
-
-    fun dynamicProp(name: String, valueProvider: Prop.() -> Any?) = constProp(name) {
-        valueDynamic { valueProvider() }
-    }
+    fun mapConst(name: String, value: Any?) = mapProp(name) { const(); value(value) }
+    fun mapConst(name: String, valueProvider: () -> Map<String, Any?>?) = mapProp(name) { const(); value.set(project.provider(valueProvider)) }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

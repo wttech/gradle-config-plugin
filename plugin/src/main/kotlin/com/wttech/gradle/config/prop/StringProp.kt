@@ -69,7 +69,7 @@ class StringProp(group: Group, name: String) : Prop(group, name) {
     }
 
     @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
-    private val value = project.objects.property(String::class.java).convention(options.map { it.firstOrNull() })
+    val value = project.objects.property(String::class.java).convention(options.map { it.firstOrNull() })
 
     override fun value() = valueDynamic(value.orNull)
 

@@ -5,7 +5,6 @@ import com.jgoodies.binding.adapter.Bindings
 import com.jgoodies.binding.list.SelectionInList
 import com.jgoodies.binding.value.AbstractValueModel
 import com.wttech.gradle.config.*
-import com.wttech.gradle.config.prop.ConstProp
 import com.wttech.gradle.config.prop.ListProp
 import com.wttech.gradle.config.prop.MapProp
 import com.wttech.gradle.config.prop.StringProp
@@ -138,7 +137,7 @@ class Gui(val definition: Definition) {
                     }, "growx, wrap, top")
                 }
 
-                group.props.get().filter { it !is ConstProp }.forEach { prop: Prop ->
+                group.props.get().forEach { prop: Prop ->
                     tab.add(JPanel(MigLayout(layoutConstraints("fill", "insets 2"))).also { propPanel ->
                         propPanel.add(JLabel(prop.label.get()), "wrap")
                         if (!prop.description.orNull.isNullOrBlank()) {

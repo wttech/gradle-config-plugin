@@ -32,6 +32,11 @@ abstract class Prop(val group: Group, val name: String) {
         visible.set(project.provider { predicate() })
     }
 
+    fun const() {
+        visible.set(false)
+        visible.finalizeValue()
+    }
+
     val enabled = project.objects.property(Boolean::class.java).convention(true)
 
     fun enabled(predicate: () -> Boolean) {
