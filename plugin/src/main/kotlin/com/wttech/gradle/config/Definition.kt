@@ -4,7 +4,6 @@ import com.wttech.gradle.config.gui.Gui
 import com.wttech.gradle.config.util.capitalLetter
 import com.wttech.gradle.config.util.capitalWords
 import org.gradle.api.Project
-import java.io.File
 
 open class Definition(val name: String, val project: Project) {
 
@@ -44,30 +43,19 @@ open class Definition(val name: String, val project: Project) {
         set(project.layout.projectDirectory.dir(".gradle/config"))
     }
 
-    val outputCapturedFile = project.objects.fileProperty().apply {
-        set(outputDir.map { it.file("$name.captured.yml") })
-    }
+    val outputCapturedFile = outputDir.map { it.file("$name.captured.yml") }
 
-    val outputYmlFile = project.objects.fileProperty().apply {
-        set(outputDir.map { it.file("$name.yml") })
-    }
+    fun outputFile(extension: String) = outputDir.map { it.file("$name.$extension") }
 
-    val outputJsonFile = project.objects.fileProperty().apply {
-        set(outputDir.map { it.file("$name.json") })
-    }
+    fun outputFile(type: FileType) = outputFile(type.extension())
 
-    val outputXmlFile = project.objects.fileProperty().apply {
-        set(outputDir.map { it.file("$name.xml") })
-    }
+    val outputYmlFile get() = outputFile(FileType.YML).get().asFile
 
-    val outputPropertiesFile = project.objects.fileProperty().apply {
-        set(outputDir.map { it.file("$name.properties") })
-    }
+    val outputXmlFile get() = outputFile(FileType.XML).get().asFile
 
-    // TODO deal with loading in build/tasks in GAT
-    val outputLoaded = project.objects.property(Boolean::class.java).apply {
-        set(false)
-    }
+    val outputJsonFile get() = outputFile(FileType.JSON).get().asFile
+
+    val outputPropertiesFile get() = outputFile(FileType.PROPERTIES).get().asFile
 
     val groups = project.objects.listProperty(Group::class.java)
 
@@ -140,7 +128,7 @@ open class Definition(val name: String, val project: Project) {
     }
 
     private fun printDefinitions() {
-        logger.lifecycle("Config '$name' groups and properties are defined like follows (debug mode is on)")
+        logger.info("Config '$name' groups and properties are defined like follows (debug mode is on)")
         println()
         groups.get().forEach { group ->
             println(group)
@@ -154,7 +142,7 @@ open class Definition(val name: String, val project: Project) {
     internal fun readCapturedValues() {
         val file = outputCapturedFile.get().asFile
         if (file.exists()) {
-            logger.lifecycle("Config '$name' is reading values from file '$file'")
+            logger.info("Config '$name' is reading values from file '$file'")
             values = fileManager.readYml(file)
         }
     }
@@ -165,7 +153,7 @@ open class Definition(val name: String, val project: Project) {
             throw ConfigException("Config '$name' cannot read values as input file does not exist '$file'!")
         }
 
-        logger.lifecycle("Config '$name' is reading values from input file '$file'")
+        logger.info("Config '$name' is reading values from input file '$file'")
         values = when (file.extension) {
             "yml" -> fileManager.readYml(file)
             "json" -> fileManager.readJson(file)
@@ -174,7 +162,7 @@ open class Definition(val name: String, val project: Project) {
     }
 
     fun captureValues() {
-        logger.lifecycle("Config '$name' is capturing values using input mode '${inputMode.get()}'")
+        logger.info("Config '$name' is capturing values using input mode '${inputMode.get()}'")
         when (inputMode.get()) {
             InputMode.GUI -> Gui.render(this)
             InputMode.CLI -> TODO("Config CLI input mode is not yet supported!")
@@ -184,26 +172,47 @@ open class Definition(val name: String, val project: Project) {
     }
 
     private fun printValues() {
-        logger.lifecycle("Config '$name' values are as follows (debug mode is on)")
+        logger.info("Config '$name' values are as follows (debug mode is on)")
         println("\n${fileManager.yaml.get().dump(values)}\n")
     }
 
-    private fun saveValues() {
-        outputCapturedFile.asFile.get().let { saveValues(it, true) { fileManager.writeYml(it, values) } }
-        outputYmlFile.asFile.get().let { saveValues(it) { fileManager.writeYml(it, valuesSaved) } }
-        outputJsonFile.asFile.get().let { saveValues(it) { fileManager.writeJson(it, valuesSaved) } }
-        outputPropertiesFile.asFile.get().let { saveValues(it) { fileManager.writeProperties(it, valuesSaved) } }
-        outputXmlFile.asFile.get().let { saveValues(it) { fileManager.writeXml(it, valuesSaved) } }
+    private val valueSavers = mutableSetOf<() -> Unit>()
+
+    fun valueSave(saver: () -> Unit) {
+        valueSavers.add(saver)
     }
 
-    private fun saveValues(file: File, verbose: Boolean = false, saver: () -> Unit) {
-        try {
-            logger.lifecycle("Config '$name' is saving values to file '$file'")
-            saver()
-        } catch (e: ConfigException) {
-            when {
-                verbose -> throw e
-                else -> logger.warn(e.message, e)
+    fun valueSaveYml() = valueSave {
+        fileManager.writeYml(outputYmlFile, valuesSaved)
+    }
+
+    fun valueSaveXml() = valueSave {
+        fileManager.writeXml(outputXmlFile, valuesSaved)
+    }
+
+    fun valueSaveProperties() = valueSave {
+        fileManager.writeProperties(outputPropertiesFile, valuesSaved)
+    }
+
+    fun valueSaveJson() = valueSave {
+        fileManager.writeJson(outputJsonFile, valuesSaved)
+    }
+
+    @Suppress("TooGenericException")
+    private fun saveValues() {
+        outputCapturedFile.get().asFile.let { file ->
+            logger.info("Config '$name' is saving captured values to file '$file'")
+            fileManager.writeYml(file, values)
+        }
+
+        if (valueSavers.isNotEmpty()) {
+            logger.info("Config '$name' is saving values additionally (${valueSavers.size})'")
+            valueSavers.forEach { valueSaver ->
+                try {
+                    valueSaver()
+                } catch (e: Exception) {
+                    logger.warn("Config '$name' cannot save values properly! Cause: ${e.message}", e)
+                }
             }
         }
     }

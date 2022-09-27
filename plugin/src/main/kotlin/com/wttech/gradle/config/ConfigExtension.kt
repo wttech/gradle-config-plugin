@@ -44,13 +44,13 @@ open class ConfigExtension(val project: Project) {
 
     fun get() = named(DEFAULT_NAME)
 
-    val jsonFile get() = get().outputJsonFile.get().asFile
+    val ymlFile get() = get().outputYmlFile
 
-    val ymlFile get() = get().outputYmlFile.get().asFile
+    val xmlFile get() = get().outputXmlFile
 
-    val xmlFile get() = get().outputXmlFile.get().asFile
+    val jsonFile get() = get().outputJsonFile
 
-    val propertiesFile get() = get().outputPropertiesFile.get().asFile
+    val propertiesFile get() = get().outputPropertiesFile
 
     companion object {
         const val NAME = "config"

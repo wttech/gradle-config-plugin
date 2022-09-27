@@ -38,6 +38,12 @@ class ConfigPluginTest {
                     label("GAT configuration")
             
                     valueSaveVisible()
+                    
+                    valueSaveYml()
+                    valueSaveJson()
+                    valueSaveXml()
+                    valueSaveProperties()
+                    
                     labelAbbrs("aem")
             
                     group("general") {
