@@ -5,7 +5,11 @@ import com.wttech.gradle.config.tpl.TemplateEngine
 import com.wttech.gradle.config.util.capitalLetter
 import com.wttech.gradle.config.util.capitalWords
 import org.gradle.api.Project
+import org.gradle.api.file.RegularFile
+import org.gradle.api.provider.Provider
+import java.io.File
 
+@Suppress("TooManyFunctions")
 open class Definition(val name: String, val project: Project) {
 
     private val logger = project.logger
@@ -205,6 +209,15 @@ open class Definition(val name: String, val project: Project) {
         fileManager.writeJson(outputJsonFile, valuesSaved)
     }
 
+    fun valueSaveTemplate(templatePath: String, targetPath: String) = valueSaveTemplate(project.file(templatePath), project.file(targetPath))
+
+    fun valueSaveTemplate(template: File, target: File) = valueSave {
+        templateEngine.renderFile(template, target, valuesSaved)
+    }
+    fun valueSaveTemplate(template: Provider<RegularFile>, target: Provider<RegularFile>) = valueSave {
+        templateEngine.renderFile(template.get().asFile, target.get().asFile, valuesSaved)
+    }
+
     fun valueSaveGradleProperties() = valueSave {
         val template = project.rootProject.file("gradle.properties.peb")
         val target = project.rootProject.file("gradle.properties")
@@ -213,7 +226,7 @@ open class Definition(val name: String, val project: Project) {
         templateEngine.renderFile(template, target, valuesSaved)
     }
 
-    @Suppress("TooGenericException")
+    @Suppress("TooGenericExceptionCaught")
     private fun saveValues() {
         outputCapturedFile.get().asFile.let { file ->
             logger.info("Config '$name' is saving captured values to file '$file'")

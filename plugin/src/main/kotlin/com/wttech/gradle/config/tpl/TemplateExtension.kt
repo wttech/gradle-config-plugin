@@ -6,8 +6,7 @@ import org.gradle.api.Project
 
 class TemplateExtension(val project: Project) : AbstractExtension() {
 
-  override fun getFilters() = mutableMapOf(
-    "substitute" to SubstituteFilter(),
-  )
-
+    override fun getFilters() = mutableMapOf(
+        "substitute" to SubstituteFilter(),
+    )
 }
