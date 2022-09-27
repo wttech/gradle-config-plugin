@@ -23,9 +23,10 @@ class StringProp(group: Group, name: String) : Prop(group, name) {
         SELECT
     }
 
-    fun checkbox() {
+    fun checkbox(flag: Boolean = false) {
         optionsStyle.set(OptionsStyle.CHECKBOX)
         valueTypeBool()
+        value(flag)
     }
 
     fun select() {
@@ -85,7 +86,11 @@ class StringProp(group: Group, name: String) : Prop(group, name) {
 
     fun alphanumeric() = validate { "Should be alphanumeric".takeUnless { checkRegex("^[a-zA-Z0-9]+$") } }
 
+    fun alphanumericDashUnderscore() = validate { "Should contain alphanumeric, dash and underscore characters".takeUnless { checkRegex("^[a-zA-Z0-9-_]+$") } }
+
     fun numeric() = validate { "Should be numeric".takeUnless { checkRegex("^[0-9]+$") } }
+
+    fun uuid() = validate { "Should match UUID format".takeUnless { checkRegex("^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}\$") } }
 
     fun alpha() = validate { "Should contain only alphabetic characters".takeUnless { checkRegex("^[a-zA-Z0-9]+$") } }
 

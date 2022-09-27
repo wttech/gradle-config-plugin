@@ -4,6 +4,7 @@ import com.wttech.gradle.config.gui.Gui
 import com.wttech.gradle.config.tpl.TemplateEngine
 import com.wttech.gradle.config.util.capitalLetter
 import com.wttech.gradle.config.util.capitalWords
+import com.wttech.gradle.config.util.rootCause
 import org.gradle.api.Project
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
@@ -239,7 +240,9 @@ open class Definition(val name: String, val project: Project) {
                 try {
                     valueSaver()
                 } catch (e: Exception) {
-                    logger.warn("Config '$name' cannot save values properly! Cause: ${e.message}", e)
+                    val message = "Config '$name' cannot save values properly!"
+                    logger.warn("$message Cause: ${e.rootCause.message}")
+                    logger.debug(message, e)
                 }
             }
         }

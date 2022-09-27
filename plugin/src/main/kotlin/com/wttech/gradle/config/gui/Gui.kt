@@ -30,7 +30,7 @@ class Gui(val definition: Definition) {
 
     private val dialog = JDialog().apply {
         title = definition.label.get()
-        layout = MigLayout(layoutConstraints("fill"))
+        layout = MigLayout(layoutConstraints("fill, w :640:, h :480:"))
         isAlwaysOnTop = true
         isModal = true
         isResizable = true
@@ -124,6 +124,8 @@ class Gui(val definition: Definition) {
     private val groupTabs = mutableListOf<GroupTab>()
 
     private val tabPane = JTabbedPane().also { tabs ->
+        tabs.tabLayoutPolicy = JTabbedPane.SCROLL_TAB_LAYOUT;
+
         dialog.add(tabs, "grow, span, wrap")
 
         definition.groups.get().forEach { group ->
@@ -168,7 +170,7 @@ class Gui(val definition: Definition) {
                         }
                         propPanel.add(validationLabel, "wrap")
                         propPanels.add(PropPanel(prop, propPanel, propField, validationLabel))
-                    }, "growx, wrap, top")
+                    }, "growx, wrap, top, hidemode 1")
                 }
             }
             groupTabs.add(GroupTab(group, panel))

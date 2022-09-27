@@ -11,7 +11,10 @@ abstract class Prop(val group: Group, val name: String) {
     // CLI & GUI input
 
     val label = project.objects.property(String::class.java).apply {
-        convention(project.provider { group.definition.composeLabel(name) })
+        convention(project.provider {
+            val text = group.definition.composeLabel(name)
+            text.removePrefix(group.label.get()).trim().ifEmpty { text }
+        })
     }
 
     fun label(text: String) {
