@@ -78,11 +78,12 @@ abstract class Prop(val group: Group, val name: String) {
 
     val validation: String?
         get() = when {
-            enabled.get() && (required.get() || (!required.get() && hasValue())) -> validator()
+            !group.visible.get() || !visible.get() -> null
+            required.get() || (!required.get() && hasValue()) -> validator()
             else -> null
         }
 
-    val valid get() = !visible.get() || (validation == null)
+    val valid get() = validation == null
 
     fun validate(validator: () -> String?) {
         this.validator = validator
@@ -129,7 +130,7 @@ abstract class Prop(val group: Group, val name: String) {
 
     fun otherMapValue(propName: String) = other(propName).map.value()
 
-    override fun toString() = "Prop(group=${group.name}, name=$name, value=${value()}, visible=${visible.get()}, enabled=${enabled.get()})"
+    override fun toString() = "Prop(group=${group.name}, name=$name, value=${value()}, visible=${visible.get()}, enabled=${enabled.get()}, valid=$valid)"
 
     override fun hashCode(): Int {
         var result = group.name.hashCode()
