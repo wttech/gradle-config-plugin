@@ -15,6 +15,10 @@ fun JDialog.centre() {
     setLocation(x, y)
 }
 
+fun JLabel.textFormatted(text: String?) {
+    this.text = text?.let { "<html>${text.replace("\n", "<br/>")}</html>"}
+}
+
 fun ImageIcon.scaleSize(width: Int, height: Int) = ImageIcon(this.image.getScaledInstance(width, height, Image.SCALE_SMOOTH))
 
 fun JLabel.scaleFont(scale: Double = 0.75) = Font(font.name, Font.PLAIN, (font.size.toDouble() * scale).toInt())

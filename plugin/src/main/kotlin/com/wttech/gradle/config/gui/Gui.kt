@@ -30,7 +30,7 @@ class Gui(val definition: Definition) {
 
     private val dialog = JDialog().apply {
         title = definition.label.get()
-        layout = MigLayout(layoutConstraints("fill"))
+        layout = MigLayout(layoutConstraints("fill", "w :640:", "h :480:"))
         isAlwaysOnTop = true
         isModal = true
         isResizable = true
@@ -138,7 +138,7 @@ class Gui(val definition: Definition) {
                 if (!group.description.orNull.isNullOrBlank()) {
                     tab.add(JPanel(MigLayout(layoutConstraints("fill", "insets 1"))).also { groupPanel ->
                         groupPanel.add(JLabel().apply {
-                            text = group.description.get()
+                            textFormatted(group.description.get())
                             font = scaleFont()
                         }, "wrap")
                     }, "growx, wrap, top")
@@ -149,7 +149,7 @@ class Gui(val definition: Definition) {
                         propPanel.add(JLabel(prop.label.get()), "wrap")
                         if (!prop.description.orNull.isNullOrBlank()) {
                             propPanel.add(JLabel().apply {
-                                text = prop.description.get()
+                                textFormatted(prop.description.get())
                                 font = scaleFont()
                             }, "wrap")
                         }
@@ -262,7 +262,7 @@ class Gui(val definition: Definition) {
             panel.container.isVisible = panel.data.visible.get()
             panel.field.isEnabled = panel.data.enabled.get()
 
-            panel.validation.text = panel.data.validation
+            panel.validation.textFormatted(panel.data.validation)
             panel.validation.isVisible = !panel.data.valid
         }
     }
