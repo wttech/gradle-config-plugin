@@ -37,8 +37,10 @@ class Gui(val definition: Definition) {
 
         addWindowListener(object : WindowAdapter() {
             override fun windowClosing(e: WindowEvent) {
-                e.window.dispose()
                 cancelled = true
+                SwingUtilities.invokeLater { // without it sometimes window needed to be double-closed
+                    e.window.dispose()
+                }
             }
         })
     }
@@ -57,7 +59,7 @@ class Gui(val definition: Definition) {
     class PropPanel(val data: Prop, val container: JPanel, val field: JComponent, val validation: JLabel)
     private val propPanels = mutableListOf<PropPanel>()
 
-    @Suppress("NestedBlockDepth")
+    @Suppress("NestedBlockDepth", "ComplexMethod")
     private fun propField(prop: Prop): JComponent = when (prop) {
         is StringProp -> {
             if (prop.options.get().isEmpty()) {
@@ -127,7 +129,7 @@ class Gui(val definition: Definition) {
     private val groupTabs = mutableListOf<GroupTab>()
 
     private val tabPane = JTabbedPane().also { tabs ->
-        tabs.tabLayoutPolicy = JTabbedPane.SCROLL_TAB_LAYOUT;
+        tabs.tabLayoutPolicy = JTabbedPane.SCROLL_TAB_LAYOUT
 
         dialog.add(tabs, "grow, span, wrap")
 

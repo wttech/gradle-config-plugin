@@ -23,6 +23,8 @@ class ListProp(group: Group, name: String) : Prop(group, name) {
         else -> project.logger.warn("Config value '$v' type of prop '$name' is not a list! Skipping it")
     }
 
+    override fun hasValue() = value()?.isNotEmpty() ?: false
+
     fun values(values: Iterable<String?>) {
         value.set(values)
     }
@@ -33,9 +35,8 @@ class ListProp(group: Group, name: String) : Prop(group, name) {
         set(listOf())
     }
 
-    override fun required() = validate {
-        val v = value()
-        if (v == null || v.isEmpty()) "Value is required"
+    fun notEmpty() = validate {
+        if (!hasValue()) "Should not be empty"
         else null
     }
 }

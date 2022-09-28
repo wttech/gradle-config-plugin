@@ -57,9 +57,30 @@ abstract class Prop(val group: Group, val name: String) {
         enabled.set(false)
     }
 
-    private var validator: (() -> String?) = { null }
+    val required = project.objects.property(Boolean::class.java).convention(true)
 
-    val validation get() = validator()
+    fun required(predicate: () -> Boolean) {
+        required.set(project.provider { predicate() })
+    }
+
+    fun required() {
+        required.set(true)
+    }
+
+    fun optional() {
+        required.set(false)
+    }
+
+    private var validator: (() -> String?) = {
+        if (!hasValue()) "Should has a value"
+        else null
+    }
+
+    val validation: String?
+        get() = when {
+            enabled.get() && (required.get() || (!required.get() && hasValue())) -> validator()
+            else -> null
+        }
 
     val valid get() = !visible.get() || (validation == null)
 
@@ -67,18 +88,13 @@ abstract class Prop(val group: Group, val name: String) {
         this.validator = validator
     }
 
-    open fun required() = validate {
-        if (value() == null) "Value is required"
-        else null
-    }
-
-    open fun optional() = validate { null }
-
     abstract fun value(): Any?
 
     open fun valueSaved() = value()
 
     abstract fun value(v: Any?)
+
+    abstract fun hasValue(): Boolean
 
     val string: StringProp
         get() = when (this) {

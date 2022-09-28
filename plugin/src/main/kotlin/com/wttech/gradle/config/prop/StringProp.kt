@@ -80,11 +80,15 @@ class StringProp(group: Group, name: String) : Prop(group, name) {
 
     override fun valueSaved() = valueSaved(value())
 
+    override fun hasValue() = !value().isNullOrBlank()
+
     override fun value(v: Any?) {
         value.set(v?.toString())
     }
 
-    override fun required() = validate { "Value is required".takeIf { value().isNullOrBlank() } }
+    fun notEmpty() = validate { "Should not be empty".takeIf { value().isNullOrEmpty() } }
+
+    fun notBlank() = validate { "Should not be blank".takeIf { value().isNullOrBlank() } }
 
     fun regex(regex: String) = validate { "Should match regex '$regex'".takeUnless { checkRegex(regex) } }
 
@@ -98,16 +102,20 @@ class StringProp(group: Group, name: String) : Prop(group, name) {
 
     fun numeric() = validate { "Should be numeric".takeUnless { checkRegex("^[0-9]+$") } }
 
-    fun uuid() = validate { "Should match UUID format".takeUnless { checkRegex("^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}\$") } }
+    fun uuid() = validate { "Should match UUID format".takeUnless {
+        checkRegex("^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}\$") }
+    }
 
     fun alpha() = validate { "Should contain only alphabetic characters".takeUnless { checkRegex("^[a-zA-Z0-9]+$") } }
 
     fun checkRegex(regex: String) = value().orEmpty().let { Regex(regex).matches(it) }
 
     init {
-        when {  // name-based smart defaults
+        when { // name-based smart defaults
             listOf("token", "password", "key").any { name.endsWith(it, true) } -> password()
             listOf("enabled", "disabled").any { name.endsWith(it, true) } -> checkbox()
         }
+
+        notBlank()
     }
 }
