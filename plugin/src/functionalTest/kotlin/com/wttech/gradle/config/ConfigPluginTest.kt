@@ -37,13 +37,12 @@ class ConfigPluginTest {
                 define {
                     label("GAT configuration")
             
-                    valueSaveVisible()
-                    
                     valueSaveYml()
                     valueSaveJson()
                     valueSaveXml()
                     valueSaveProperties()
-                    
+                    // valueSaveGradleProperties()
+            
                     labelAbbrs("aem")
             
                     group("general") {
@@ -57,7 +56,7 @@ class ConfigPluginTest {
                             visible { otherValue("infra") !in listOf("local", "vagrant")}
                             validate { "Not supported on selected infra".takeIf { groups.get().none { it.name == "remote-${'$'}{otherValue("infra")}_${'$'}{value()}" } } }
                         }
-                        dynamicProp("domain") { "gat-${'$'}{otherValue("infra")}.wttech.cloud" }
+                        const("domain") { "gat-${'$'}{value("infra")}.wttech.cloud" }
                     }
                     group("local") {
                         label("Local Env")
@@ -65,7 +64,6 @@ class ConfigPluginTest {
                         visible { value("infra") == name }
             
                         prop("monitoringEnabled") {
-                            options("true", "false")
                             checkbox()
                         }
                     }
@@ -102,6 +100,10 @@ class ConfigPluginTest {
                         prop("mavenArgs") {
                             value("-DskipTests")
                         }
+                        prop("packageManagerDeployAvoidance") {
+                            description("When package is unchanged do not upload & install it again")
+                            checkbox()
+                        }
                     }
                     group("test") {
                         description("Automated tests execution settings")
@@ -109,10 +111,10 @@ class ConfigPluginTest {
                         prop("percyEnabled") {
                             checkbox()
                         }
-                        dynamicProp("testBaseUrl") {
-                            when (otherStringValue("infra")) {
+                        const("testBaseUrl") {
+                            when (stringValue("infra")) {
                                 "local" -> "https://publish.local.gat.com"
-                                else -> "https://${'$'}{otherValue("env")}.${'$'}{otherValue("domain")}"
+                                else -> "https://${'$'}{value("env")}.${'$'}{value("domain")}"
                             }
                         }
                     }
