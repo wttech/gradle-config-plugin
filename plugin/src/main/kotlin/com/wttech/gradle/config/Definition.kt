@@ -57,6 +57,8 @@ open class Definition(val name: String, val project: Project) {
 
     val outputCapturedFile = outputDir.map { it.file("$name.captured.yml") }
 
+    val captured get() = outputCapturedFile.get().asFile.exists()
+
     fun outputFile(extension: String) = outputDir.map { it.file("$name.$extension") }
 
     fun outputFile(type: FileType) = outputFile(type.extension())
@@ -98,13 +100,37 @@ open class Definition(val name: String, val project: Project) {
     val valuesSaved: Map<String, Any?>
         get() = props.filter(valueSaveFilter).associate { it.name to it.valueSaved() }
 
-    fun value(propName: String) = getProp(propName).value()
+    fun value(propName: String) = valueOrNull(propName)
+        ?: throw ConfigException("Config '$name' prop '$propName' is null!")
 
-    fun stringValue(propName: String) = getProp(propName).string.value()
+    fun valueOrNull(propName: String) = getProp(propName).value()
 
-    fun listValue(propName: String) = getProp(propName).list.value()
+    fun stringValue(propName: String) = stringValueOrNull(propName)
+        ?: throw ConfigException("Config '$name' string prop '$propName' is null!")
 
-    fun mapValue(propName: String) = getProp(propName).map.value()
+    fun stringValueOrNull(propName: String) = getProp(propName).string.value()
+
+    fun boolValue(propName: String) = stringValue(propName).toBoolean()
+
+    fun boolValueOrNull(propName: String) = stringValueOrNull(propName)?.toBoolean()
+
+    fun intValue(propName: String) = stringValue(propName).toInt()
+
+    fun intValueOrNull(propName: String) = stringValueOrNull(propName)?.toInt()
+
+    fun doubleValue(propName: String) = stringValue(propName).toDouble()
+
+    fun doubleValueOrNull(propName: String) = stringValueOrNull(propName)?.toDouble()
+
+    fun listValue(propName: String) = listValueOrNull(propName)
+        ?: throw ConfigException("Config '$name' list prop '$propName' is null!")
+
+    fun listValueOrNull(propName: String) = getProp(propName).list.value()
+
+    fun mapValue(propName: String) = mapValueOrNull(propName)
+        ?: throw ConfigException("Config '$name' map prop '$propName' is null!")
+
+    fun mapValueOrNull(propName: String) = getProp(propName).map.value()
 
     val labelDict = project.objects.mapProperty(String::class.java, String::class.java).apply {
         set(mapOf())

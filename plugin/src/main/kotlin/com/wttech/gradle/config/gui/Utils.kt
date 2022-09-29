@@ -16,7 +16,7 @@ fun JDialog.centre() {
 }
 
 fun JLabel.textFormatted(text: String?) {
-    this.text = text?.let { "<html>${text.replace("\n", "<br/>")}</html>"}
+    this.text = text?.let { "<html>${text.replace("\n", "<br/>")}</html>" }
 }
 
 fun ImageIcon.scaleSize(width: Int, height: Int) = ImageIcon(this.image.getScaledInstance(width, height, Image.SCALE_SMOOTH))
