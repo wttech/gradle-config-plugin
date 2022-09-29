@@ -8,8 +8,6 @@ plugins {
     id("com.gradle.plugin-publish") version "1.0.0"
     id("org.jetbrains.kotlin.jvm") version "1.6.21"
     id("io.gitlab.arturbosch.detekt") version "1.21.0"
-    id("net.researchgate.release") version "3.0.2"
-    id("com.github.breadmoirai.github-release") version "2.4.1"
 }
 
 group = "com.wttech.gradle.config"
@@ -92,15 +90,6 @@ tasks {
     named("functionalTest") {
         dependsOn(jar, "detektFunctionalTest")
     }
-    afterReleaseBuild {
-        dependsOn(publishPlugins)
-    }
-    named("githubRelease") {
-        mustRunAfter(release)
-    }
-    register("fullRelease") {
-        dependsOn("release", "githubRelease")
-    }
 }
 
 gradlePlugin {
@@ -125,37 +114,4 @@ pluginBundle {
     vcsUrl = "https://github.com/wttech/gradle-config-plugin.git"
     description = "Gradle Config Plugin"
     tags = listOf("config", "cli", "gui", "input", "yml", "json", "settings")
-}
-
-githubRelease {
-    owner("wttech")
-    repo("gradle-config-plugin")
-    token((findProperty("github.token") ?: "").toString())
-    tagName(project.version.toString())
-    releaseName(project.version.toString())
-    draft((findProperty("github.draft") ?: "false").toString().toBoolean())
-    overwrite((findProperty("github.override") ?: "true").toString().toBoolean())
-
-    gradle.projectsEvaluated {
-        releaseAssets(listOf("jar").map { tasks.named(it) })
-    }
-
-    if ((findProperty("github.prerelease") ?: "true").toString().toBoolean()) {
-        prerelease(true)
-    } else {
-        body { """
-        |# What's new
-        |
-        |TBD
-        |
-        |# Upgrade notes
-        |
-        |Nothing to do.
-        |
-        |# Contributions
-        |
-        |None.
-        """.trimMargin()
-        }
-    }
 }
