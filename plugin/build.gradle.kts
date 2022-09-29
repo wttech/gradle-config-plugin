@@ -5,7 +5,7 @@ plugins {
     `java-gradle-plugin`
     `maven-publish`
 
-    id("com.gradle.plugin-publish") version "0.20.0"
+    id("com.gradle.plugin-publish") version "1.0.0"
     id("org.jetbrains.kotlin.jvm") version "1.6.21"
     id("io.gitlab.arturbosch.detekt") version "1.21.0"
     id("net.researchgate.release") version "3.0.2"
