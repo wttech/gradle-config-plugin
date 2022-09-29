@@ -126,3 +126,36 @@ pluginBundle {
     description = "Gradle Config Plugin"
     tags = listOf("config", "cli", "gui", "input", "yml", "json", "settings")
 }
+
+githubRelease {
+    owner("wttech")
+    repo("gradle-config-plugin")
+    token((findProperty("github.token") ?: "").toString())
+    tagName(project.version.toString())
+    releaseName(project.version.toString())
+    draft((findProperty("github.draft") ?: "false").toString().toBoolean())
+    overwrite((findProperty("github.override") ?: "true").toString().toBoolean())
+
+    gradle.projectsEvaluated {
+        releaseAssets(listOf("jar").map { tasks.named(it) })
+    }
+
+    if ((findProperty("github.prerelease") ?: "true").toString().toBoolean()) {
+        prerelease(true)
+    } else {
+        body { """
+        |# What's new
+        |
+        |TBD
+        |
+        |# Upgrade notes
+        |
+        |Nothing to do.
+        |
+        |# Contributions
+        |
+        |None.
+        """.trimMargin()
+        }
+    }
+}
