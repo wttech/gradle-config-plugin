@@ -43,16 +43,19 @@ open class ConfigExtension(val project: Project) {
                 val config = named(name)
                 if (!config.captured) {
                     throw ConfigException(mutableListOf("Config '$name' is not yet captured!").apply {
-                        definitionTasks[name]?.let { taskName -> add( "Run task '$taskName' to provide configuration values.") }
+                        definitionTasks[name]?.let { taskName -> add("Run task '$taskName' to provide configuration values.") }
                     }.joinToString("\n"))
                 }
             }
         }
     }
 
-    fun read(name: String) = named(name).apply { readCapturedValues() }
-
     fun read() = read(DEFAULT_NAME)
+
+    fun read(name: String) = named(name).apply {
+        finalize()
+        readCapturedValues()
+    }
 
     operator fun get(name: String) = valueOrNull(name)
 

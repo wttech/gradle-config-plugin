@@ -144,7 +144,7 @@ open class Definition(val name: String, val project: Project) {
     fun composeLabel(text: String): String = labelDict.get().entries.fold(text.capitalWords()) { n, (s, r) -> n.replace(s, r) }
 
     fun capture() {
-        lockDefinitions()
+        finalize()
         if (debug.get()) printDefinitions()
         readCapturedValues()
         captureValues()
@@ -152,7 +152,7 @@ open class Definition(val name: String, val project: Project) {
         saveValues()
     }
 
-    private fun lockDefinitions() {
+    internal fun finalize() {
         groups.finalizeValueOnRead()
         groups.get().forEach { it.props.finalizeValueOnRead() }
     }
