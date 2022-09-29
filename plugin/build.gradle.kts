@@ -10,7 +10,7 @@ plugins {
     id("io.gitlab.arturbosch.detekt") version "1.21.0"
 }
 
-group = "com.wttech.gradle.config"
+group = "io.wttech.gradle.config"
 description = "Gradle Config Plugin"
 
 repositories {
@@ -95,8 +95,8 @@ tasks {
 gradlePlugin {
     plugins {
         create("config") {
-            id = "com.wttech.config"
-            implementationClass = "com.wttech.gradle.config.ConfigPlugin"
+            id = "io.wttech.config"
+            implementationClass = "io.wttech.gradle.config.ConfigPlugin"
             displayName = "Config Plugin"
             description = "Organizes and captures configurable input values to your Gradle builds using interactive inputs (GUI/CLI)"
         }

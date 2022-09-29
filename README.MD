@@ -32,7 +32,7 @@ Other concepts / features:
 
 ```kotlin
 plugins {
-    id("com.wttech.config")
+    id("io.wttech.config")
 }
 
 config {

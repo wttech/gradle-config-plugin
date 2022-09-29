@@ -1,5 +1,5 @@
 plugins {
-    id("com.wttech.config")
+    id("io.wttech.config")
     id("net.researchgate.release") version "3.0.2"
 }
 
