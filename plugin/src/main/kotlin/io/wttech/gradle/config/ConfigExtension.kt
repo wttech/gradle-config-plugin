@@ -62,9 +62,13 @@ open class ConfigExtension(val project: Project) {
 
     val values get() = get().values
 
+    val valuesSaved get() = get().valuesSaved
+
     fun value(propName: String) = read().value(propName)
 
     fun valueOrNull(propName: String) = read().valueOrNull(propName)
+
+    fun stringValue(propName: String) = read().stringValue(propName)
 
     fun stringValueOrNull(propName: String) = read().stringValueOrNull(propName)
 
@@ -79,8 +83,6 @@ open class ConfigExtension(val project: Project) {
     fun doubleValue(propName: String) = stringValue(propName).toDouble()
 
     fun doubleValueOrNull(propName: String) = stringValueOrNull(propName)?.toDouble()
-
-    fun stringValue(propName: String) = read().stringValue(propName)
 
     fun listValue(propName: String) = read().listValue(propName)
 

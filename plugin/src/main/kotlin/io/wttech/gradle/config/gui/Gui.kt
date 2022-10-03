@@ -69,7 +69,7 @@ class Gui(val definition: Definition) {
                 }.apply {
                     Bindings.bind(this, object : PropValueModel() {
                         override fun getValue() = prop.stringValue
-                        override fun updateValue(v: Any?) { prop.value(v?.toString()) }
+                        override fun updateValue(v: Any?) { prop.setValue(v?.toString()) }
                     })
                 }
             } else {
@@ -77,7 +77,7 @@ class Gui(val definition: Definition) {
                     JComboBox<String>().apply {
                         val valueModel = object : PropValueModel() {
                             override fun getValue() = prop.stringValue
-                            override fun updateValue(v: Any?) { prop.value(v?.toString()) }
+                            override fun updateValue(v: Any?) { prop.setValue(v?.toString()) }
                         }
                         val optionsModel = object : PropValueModel() {
                             override fun getValue() = prop.options.orNull ?: listOf()
@@ -88,7 +88,7 @@ class Gui(val definition: Definition) {
                     JCheckBox().apply {
                         val valueModel = object : PropValueModel() {
                             override fun getValue() = prop.stringValue?.toBoolean()
-                            override fun updateValue(v: Any?) { prop.value(v?.toString()?.toBoolean()) }
+                            override fun updateValue(v: Any?) { prop.setValue(v?.toString()?.toBoolean()) }
                         }
                         Bindings.bind(this, valueModel)
                     }
@@ -102,7 +102,7 @@ class Gui(val definition: Definition) {
                 JTextArea().apply {
                     Bindings.bind(this, object : PropValueModel() {
                         override fun getValue() = prop.listValue?.joinToString("\n")
-                        override fun updateValue(v: Any?) { prop.value(v?.toString()?.split("\n")) }
+                        override fun updateValue(v: Any?) { prop.setValue(v?.toString()?.split("\n")) }
                     })
                 }
             } else {
@@ -114,7 +114,7 @@ class Gui(val definition: Definition) {
                 val valueModel = object : PropValueModel() {
                     override fun getValue() = prop.mapValue?.map { "${it.key}=${it.value}" }?.joinToString("\n")
                     override fun updateValue(v: Any?) {
-                        prop.value(v?.toString()?.split("\n")?.associate {
+                        prop.setValue(v?.toString()?.split("\n")?.associate {
                             it.substringBefore("=") to it.substringAfter("=")
                         })
                     }

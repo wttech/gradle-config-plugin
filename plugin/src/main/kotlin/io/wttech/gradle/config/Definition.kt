@@ -88,8 +88,8 @@ open class Definition(val name: String, val project: Project) {
         ?: throw ConfigException("Prop '$propName' is not defined!")
 
     var values: Map<String, Any?>
-        get() = props.associate { it.name to it.value() }
-        set(vs) { vs.forEach { (k, v) -> findProp(k)?.value(v) } }
+        get() = props.associate { it.name to it.value() }.toSortedMap()
+        set(vs) { vs.forEach { (k, v) -> findProp(k)?.setValue(v) } }
 
     private var valueSaveFilter: Prop.() -> Boolean = { true }
 
@@ -98,7 +98,7 @@ open class Definition(val name: String, val project: Project) {
     }
 
     val valuesSaved: Map<String, Any?>
-        get() = props.filter(valueSaveFilter).associate { it.name to it.valueSaved() }
+        get() = props.filter(valueSaveFilter).associate { it.name to it.valueSaved() }.toSortedMap()
 
     fun value(propName: String) = valueOrNull(propName)
         ?: throw ConfigException("Config '$name' prop '$propName' is null!")

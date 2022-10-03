@@ -26,7 +26,7 @@ class StringProp(group: Group, name: String) : Prop(group, name) {
     fun checkbox(flag: Boolean = false) {
         optionsStyle.set(OptionsStyle.CHECKBOX)
         valueTypeBool()
-        value(flag)
+        setValue(flag)
     }
 
     fun select() {
@@ -82,7 +82,7 @@ class StringProp(group: Group, name: String) : Prop(group, name) {
 
     override fun hasValue() = !value().isNullOrBlank()
 
-    override fun value(v: Any?) {
+    override fun setValue(v: Any?) {
         value.set(v?.toString())
     }
 

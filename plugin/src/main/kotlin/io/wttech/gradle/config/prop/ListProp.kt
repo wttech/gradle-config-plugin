@@ -18,7 +18,7 @@ class ListProp(group: Group, name: String) : Prop(group, name) {
     override fun value() = valueMutator(value.orNull)
 
     @Suppress("unchecked_cast")
-    override fun value(v: Any?) = when (v) {
+    override fun setValue(v: Any?) = when (v) {
         is List<*>? -> value.set(v as List<String?>?)
         else -> project.logger.warn("Config value '$v' type of prop '$name' is not a list! Skipping it")
     }

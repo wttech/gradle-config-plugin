@@ -93,7 +93,9 @@ abstract class Prop(val group: Group, val name: String) {
 
     open fun valueSaved() = value()
 
-    abstract fun value(v: Any?)
+    abstract fun setValue(v: Any?)
+
+    fun valueDefault(v: Any?) = setValue(v)
 
     abstract fun hasValue(): Boolean
 
@@ -119,16 +121,6 @@ abstract class Prop(val group: Group, val name: String) {
     val listValue get() = list.value()
 
     val mapValue get() = map.value()
-
-    fun other(propName: String) = group.definition.getProp(propName)
-
-    fun otherValue(propName: String) = other(propName).value()
-
-    fun otherStringValue(propName: String) = other(propName).string.value()
-
-    fun otherListValue(propName: String) = other(propName).list.value()
-
-    fun otherMapValue(propName: String) = other(propName).map.value()
 
     override fun toString() = "Prop(group=${group.name}, name=$name, value=${value()}, visible=${visible.get()}, enabled=${enabled.get()}, valid=$valid)"
 
