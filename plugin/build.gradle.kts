@@ -99,7 +99,7 @@ gradlePlugin {
             id = "io.wttech.config"
             implementationClass = "io.wttech.gradle.config.ConfigPlugin"
             displayName = "Config Plugin"
-            description = "Organizes and captures configurable input values to your Gradle builds using interactive inputs (GUI/CLI)"
+            description = "Organizes and captures configurable input values to your Gradle builds using interactive interfaces (GUI/CLI)"
         }
     }
 }
