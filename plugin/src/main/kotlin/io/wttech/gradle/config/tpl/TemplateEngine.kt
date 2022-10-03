@@ -52,14 +52,19 @@ class TemplateEngine(val project: Project) {
         if (!template.exists()) {
             throw ConfigException("Template file does not exist '$template'!")
         }
+
+        val targetTmp = target.parentFile.resolve("${target.name}.tmp")
         try {
             val propsCombined = this.props.get() + props
-            target.parentFile.mkdirs()
-            target.bufferedWriter().use { output ->
+            targetTmp.parentFile.mkdirs()
+            targetTmp.bufferedWriter().use { output ->
                 engine.getTemplate(template.absolutePath).evaluate(output, propsCombined)
             }
+            targetTmp.copyTo(target, true)
         } catch (e: Exception) {
             throw ConfigException("Template file cannot be rendered '$template'!", e)
+        } finally {
+            targetTmp.delete()
         }
     }
 
