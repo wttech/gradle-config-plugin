@@ -24,7 +24,7 @@ class MapProp(group: Group, name: String) : Prop(group, name) {
     fun values(vararg values: Pair<String, Any?>) = values(values.asIterable())
 
     @Suppress("unchecked_cast")
-    override fun setValue(v: Any?) = when (v) {
+    override fun valueSet(v: Any?) = when (v) {
         is Map<*, *>? -> value.set(v as Map<String, Any?>)
         else -> project.logger.warn("Config value '$v' type of prop '$name' is not a map! Skipping it")
     }

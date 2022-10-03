@@ -89,7 +89,7 @@ open class Definition(val name: String, val project: Project) {
 
     var values: Map<String, Any?>
         get() = props.associate { it.name to it.value() }.toSortedMap()
-        set(vs) { vs.forEach { (k, v) -> findProp(k)?.setValue(v) } }
+        set(vs) { vs.forEach { (k, v) -> findProp(k)?.valueSet(v) } }
 
     private var valueSaveFilter: Prop.() -> Boolean = { true }
 
