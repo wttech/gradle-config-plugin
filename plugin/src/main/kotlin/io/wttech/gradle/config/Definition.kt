@@ -1,5 +1,6 @@
 package io.wttech.gradle.config
 
+import io.wttech.gradle.config.cli.Cli
 import io.wttech.gradle.config.gui.Gui
 import io.wttech.gradle.config.tpl.TemplateEngine
 import io.wttech.gradle.config.util.capitalLetter
@@ -195,7 +196,7 @@ open class Definition(val name: String, val project: Project) {
         logger.info("Config '$name' is capturing values using input mode '${inputMode.get()}'")
         when (inputMode.get()) {
             InputMode.GUI -> Gui.render(this)
-            InputMode.CLI -> TODO("Config CLI input mode is not yet supported!")
+            InputMode.CLI -> Cli.render(this)
             InputMode.FILE -> readInputValues()
             else -> throw ConfigException("Config '$name' uses unsupported input mode!")
         }
