@@ -17,10 +17,10 @@ class Cli(val definition: Definition) {
     private val userInput by lazy { project.getService<UserInputHandler>() }
 
     private val commands = mapOf(
-        "show-properties" to { showProperties(); false },
-        "update-property" to { updateProperty(); false },
+        "update property" to { updateProperty(); false },
+        "describe properties" to { showProperties(); false },
+        "cancel" to { throw CancelException("Config '${definition.name}' CLI input has been closed!") },
         "save" to { true },
-        "cancel" to { throw CancelException("Config '${definition.name}' CLI input has been closed!") }
     )
 
     fun render() {
@@ -80,8 +80,9 @@ class Cli(val definition: Definition) {
     private fun updateProperty() {
         val propEnabled = definition.props
             .filter { it.group.visible.get() && it.visible.get() && it.enabled.get() }
-            .map { it.name }
-        val propName = userInput.selectOption("Select property", propEnabled, "none")
+            .map { "${it.name} : ${it.value()?.toString()}" }
+
+        val propName = userInput.selectOption("Select property", propEnabled, "none").substringBefore(":").trim()
         if (propName != "none") {
             when (val prop = definition.getProp(propName)) {
                 is StringProp -> {
@@ -98,10 +99,19 @@ class Cli(val definition: Definition) {
                     }
                 }
                 is ListProp -> {
-                    TODO("List prop is not yet supported by CLI mode!")
+                    if (prop.options.get().isNotEmpty()) {
+                        TODO("List prop options are not yet supported by CLI mode!")
+                    } else {
+                        val currentValue = prop.value()?.joinToString(",")
+                        val updatedValue = userInput.askQuestion("Enter values (in format v1,v2,...) for property '$propName'", currentValue)
+                        prop.valueSet(updatedValue?.split(","))
+                    }
                 }
                 is MapProp -> {
-                    TODO("Map prop is not yet supported by CLI mode!")
+                    val currentValue = prop.value()?.map { "${it.key}=${it.value}" }?.joinToString(",")
+                    val updatedValue = userInput.askQuestion("Enter values (in format k1=v1,k2=v2,...) for property '$propName'", currentValue)
+                    prop.valueSet(
+                        updatedValue?.split(",")?.associate { it.substringBefore("=") to it.substringAfter("=") })
                 }
             }
         }
