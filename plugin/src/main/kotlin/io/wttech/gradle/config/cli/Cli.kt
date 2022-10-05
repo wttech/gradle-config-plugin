@@ -1,5 +1,6 @@
 package io.wttech.gradle.config.cli
 
+import io.wttech.gradle.config.CancelException
 import io.wttech.gradle.config.ConfigException
 import io.wttech.gradle.config.Definition
 import io.wttech.gradle.config.prop.ListProp
@@ -13,14 +14,20 @@ class Cli(val definition: Definition) {
 
     val project = definition.project
 
-    val userInput by lazy { project.getService<UserInputHandler>() }
+    private val userInput by lazy { project.getService<UserInputHandler>() }
+
+    private val commands = mapOf(
+        "show-properties" to { showProperties(); false },
+        "update-property" to { updateProperty(); false },
+        "save" to { true },
+        "cancel" to { throw CancelException("Config '${definition.name}' CLI input has been closed!") }
+    )
 
     fun render() {
         while (true) {
-            when (userInput.selectOption(composeCommandQuestion(), listOf("show-properties", "update-property", "quit"), "show-properties")) {
-                "show-properties" -> showProperties()
-                "update-property" -> updateProperty()
-                "quit" -> break
+            val commandName = userInput.selectOption(composeCommandQuestion(), commands.keys, commands.keys.first())
+            if (commands[commandName]!!()) {
+                break
             }
         }
     }
@@ -43,14 +50,28 @@ class Cli(val definition: Definition) {
         PrintWriter(printQuestion).apply {
             println()
 
-            // TODO print with property name in the beginning; all else wrapped by 2 spaces including: value, label, description etc
+            var propCounter = 0
             definition.groups.get().filter { it.visible.get() }.forEach { group ->
                 val groupHeader = "${group.label.get()} (${group.name})"
                 println(groupHeader)
                 println("=".repeat(groupHeader.length))
 
                 group.props.get().filter { it.visible.get() }.forEach { prop ->
-                    println("${prop.label.get()} (${prop.name}) = ${prop.value()}")
+                    if (prop.enabled.get()) {
+                        propCounter++
+                        println("${"*".repeat(propCounter.toString().length)}: ${prop.name}")
+                    } else {
+                        println("${propCounter}: ${prop.name}")
+                    }
+
+                    println("  Value: ${prop.value()?.toString()?.ifBlank { "<empty>" }}")
+
+                    if (!prop.label.orNull.isNullOrBlank()) {
+                        println("  Label: ${prop.label.get()}")
+                    }
+                    if (!prop.description.orNull.isNullOrBlank()) {
+                        println("  Description: ${prop.description.orNull}")
+                    }
                 }
 
                 println()
@@ -59,9 +80,11 @@ class Cli(val definition: Definition) {
         println(printQuestion.toString())
     }
 
-    // TODO print current value in option
     private fun updateProperty() {
-        val propName = userInput.selectOption("Select property", definition.props.map { it.name }, "none")
+        val propEnabled = definition.props
+            .filter { it.group.visible.get() && it.visible.get() && it.enabled.get() }
+            .map { it.name }
+        val propName = userInput.selectOption("Select property", propEnabled, "none")
         if (propName != "none") {
             when (val prop = definition.getProp(propName)) {
                 is StringProp -> {
