@@ -50,27 +50,24 @@ class Cli(val definition: Definition) {
         PrintWriter(printQuestion).apply {
             println()
 
-            var propCounter = 0
             definition.groups.get().filter { it.visible.get() }.forEach { group ->
                 val groupHeader = "${group.label.get()} (${group.name})"
                 println(groupHeader)
-                println("=".repeat(groupHeader.length))
+
+                println()
 
                 group.props.get().filter { it.visible.get() }.forEach { prop ->
-                    if (prop.enabled.get()) {
-                        propCounter++
-                        println("${"*".repeat(propCounter.toString().length)}: ${prop.name}")
-                    } else {
-                        println("${propCounter}: ${prop.name}")
-                    }
+                    println("  ${prop.label.get()} (${prop.name})")
+                    println("    Value: ${prop.value()?.toString()?.ifBlank { "<empty>" }}")
 
-                    println("  Value: ${prop.value()?.toString()?.ifBlank { "<empty>" }}")
-
-                    if (!prop.label.orNull.isNullOrBlank()) {
-                        println("  Label: ${prop.label.get()}")
-                    }
-                    if (!prop.description.orNull.isNullOrBlank()) {
-                        println("  Description: ${prop.description.orNull}")
+                    val desc = prop.description.orNull?.trim()
+                    if (!desc.isNullOrBlank()) {
+                        if (desc.contains("\n")) {
+                            println("    Description:")
+                            println(prop.description.orNull?.prependIndent("      "))
+                        } else {
+                            println("    Description: $desc")
+                        }
                     }
                 }
 
