@@ -94,6 +94,8 @@ abstract class Prop(val group: Group, val name: String) {
     open fun valueSaved() = value()
 
     abstract fun value(v: Any?)
+    fun valueDefault(v: Any?) = value(v)
+    fun default(v: Any?) = valueDefault(v)
 
     abstract fun hasValue(): Boolean
 
