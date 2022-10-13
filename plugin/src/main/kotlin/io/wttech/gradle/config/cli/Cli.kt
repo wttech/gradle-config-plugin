@@ -93,10 +93,10 @@ class Cli(val definition: Definition) {
                             prop.options.get(),
                             prop.value()
                         )
-                        prop.valueSet(propValue)
+                        prop.value(propValue)
                     } else {
                         val propValue = userInput.askQuestion("Enter value for property '$propName'", prop.value())
-                        prop.valueSet(propValue)
+                        prop.value(propValue)
                     }
                 }
                 is ListProp -> {
@@ -105,14 +105,13 @@ class Cli(val definition: Definition) {
                     } else {
                         val currentValue = prop.value()?.joinToString(",")
                         val updatedValue = userInput.askQuestion("Enter values (in format v1,v2,...) for property '$propName'", currentValue)
-                        prop.valueSet(updatedValue?.split(","))
+                        prop.value(updatedValue?.split(","))
                     }
                 }
                 is MapProp -> {
                     val currentValue = prop.value()?.map { "${it.key}=${it.value}" }?.joinToString(",")
                     val updatedValue = userInput.askQuestion("Enter values (in format k1=v1,k2=v2,...) for property '$propName'", currentValue)
-                    prop.valueSet(
-                        updatedValue?.split(",")?.associate { it.substringBefore("=") to it.substringAfter("=") })
+                    prop.value(updatedValue?.split(",")?.associate { it.substringBefore("=") to it.substringAfter("=") })
                 }
             }
         }
