@@ -45,6 +45,7 @@ class Cli(val definition: Definition) {
         return result.toString()
     }
 
+    @Suppress("NestedBlockDepth")
     private fun showProperties() {
         val printQuestion = StringWriter()
         PrintWriter(printQuestion).apply {
