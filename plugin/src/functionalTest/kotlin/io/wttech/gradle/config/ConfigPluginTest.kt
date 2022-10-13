@@ -53,8 +53,8 @@ class ConfigPluginTest {
                         }
                         prop("envType") {
                             options("afe_single", "aem_single", "aem_multi")
-                            visible { otherValue("infra") !in listOf("local", "vagrant")}
-                            validate { "Not supported on selected infra".takeIf { groups.get().none { it.name == "remote-${'$'}{otherValue("infra")}_${'$'}{value()}" } } }
+                            visible { stringValue("infra") !in listOf("local", "vagrant")}
+                            validate { "Not supported on selected infra".takeIf { groups.get().none { it.name == "remote-${'$'}{stringValue("infra")}_${'$'}{value()}" } } }
                         }
                         const("domain") { "gat-${'$'}{value("infra")}.wttech.cloud" }
                     }
@@ -79,10 +79,10 @@ class ConfigPluginTest {
                         prop("envMode") {
                             options("dev", "stg", "prod")
                             description("Controls AEM run mode")
-                            enabled { otherStringValue("env") == "kp" }
+                            enabled { stringValue("env") == "kp" }
                         }
                         prop("aemInstancePassword") {
-                            valueDynamic { otherStringValue("env")?.takeIf { it.isNotBlank() }?.let { "${'$'}it-pass" } }
+                            valueDynamic { stringValue("env")?.takeIf { it.isNotBlank() }?.let { "${'$'}it-pass" } }
                             description("Needed to access AEM admin (author & publish)")
                             required()
                         }
