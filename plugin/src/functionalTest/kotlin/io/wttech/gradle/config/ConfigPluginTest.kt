@@ -48,7 +48,7 @@ class ConfigPluginTest {
                     group("general") {
                         description("Infrastructure and environment type selection")
                         prop("infra") {
-                            value("aws")
+                            valueDefault("aws")
                             options("local", "aws", "gcp", "az", "vagrant")
                         }
                         prop("envType") {
@@ -56,12 +56,12 @@ class ConfigPluginTest {
                             visible { stringValue("infra") !in listOf("local", "vagrant")}
                             validate { "Not supported on selected infra".takeIf { groups.get().none { it.name == "remote-${'$'}{stringValue("infra")}_${'$'}{value()}" } } }
                         }
-                        const("domain") { "gat-${'$'}{value("infra")}.wttech.cloud" }
+                        const("domain") { "gat-${'$'}{stringValue("infra")}.wttech.cloud" }
                     }
                     group("local") {
                         label("Local Env")
                         description("Environment set up directly on current machine")
-                        visible { value("infra") == name }
+                        visible { stringValue("infra") == name }
             
                         prop("monitoringEnabled") {
                             checkbox()
@@ -70,10 +70,10 @@ class ConfigPluginTest {
                     group("remote-aws_afe_single") {
                         label("Remote Env")
                         description("Dedicated env for AFE app deployed on AWS infra")
-                        visible { name == "remote-${'$'}{value("infra")}_${'$'}{value("envType")}" }
+                        visible { name == "remote-${'$'}{stringValue("infra")}_${'$'}{stringValue("envType")}" }
             
                         prop("env") {
-                            value("kp")
+                            valueDefault("kp")
                             alphanumeric()
                         }
                         prop("envMode") {
@@ -87,7 +87,7 @@ class ConfigPluginTest {
                             required()
                         }
                         prop("aemProxyPassword") {
-                            value("admin")
+                            valueDefault("admin")
                             description("Needed to access AEM dispatcher pages")
                             required()
                         }
@@ -98,7 +98,7 @@ class ConfigPluginTest {
                     group("app") {
                         description("Application build settings")
                         prop("mavenArgs") {
-                            value("-DskipTests")
+                            valueDefault("-DskipTests")
                         }
                         prop("packageManagerDeployAvoidance") {
                             description("When package is unchanged do not upload & install it again")
@@ -114,7 +114,7 @@ class ConfigPluginTest {
                         const("testBaseUrl") {
                             when (stringValue("infra")) {
                                 "local" -> "https://publish.local.gat.com"
-                                else -> "https://${'$'}{value("env")}.${'$'}{value("domain")}"
+                                else -> "https://${'$'}{stringValue("env")}.${'$'}{stringValue("domain")}"
                             }
                         }
                     }
@@ -130,7 +130,7 @@ class ConfigPluginTest {
             }
             """.trimIndent())
 
-        val result = runBuild("printAemInstancePassword")
+        val result = runBuild("printAemInstancePassword", "-s")
         assertContains(result.output, "kp-pass")
     }
 }

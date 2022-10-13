@@ -17,7 +17,7 @@ class GradleConfigTest {
         extension.define {
             group("general") {
                 prop("testBaseUrl") {
-                    value("http://localhost:8080")
+                    valueDefault("http://localhost:8080")
                 }
             }
         }
