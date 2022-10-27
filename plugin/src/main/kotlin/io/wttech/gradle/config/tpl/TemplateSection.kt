@@ -33,6 +33,7 @@ data class TemplateSection(val name: String, val entries: List<String>) {
 
         const val MARKER_NAME = "#name"
 
+        @Suppress("NestedBlockDepth")
         fun parseAll(text: String): List<TemplateSection> {
             val sections = mutableListOf<TemplateSection>()
 
