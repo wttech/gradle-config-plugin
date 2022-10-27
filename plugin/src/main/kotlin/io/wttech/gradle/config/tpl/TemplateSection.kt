@@ -5,14 +5,17 @@ import java.io.File
 data class TemplateSection(val name: String, val entries: List<String>) {
 
     fun save(target: File) {
-        val text = target.readText()
-        val sections = parseAll(text)
-
-        val old = sections.find { it.name == this.name }
-        if (old != null) {
-            target.writeText(text.replace(old.render(), render()))
+        if (target.exists()) {
+            val text = target.readText()
+            val sections = parseAll(text)
+            val old = sections.find { it.name == this.name }
+            if (old != null) {
+                target.writeText(text.replace(old.render(), render()))
+            } else {
+                target.appendText("${System.lineSeparator()}${render()}")
+            }
         } else {
-            target.appendText("${System.lineSeparator()}${render()}")
+            target.writeText(render())
         }
     }
 
