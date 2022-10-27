@@ -245,7 +245,7 @@ open class Definition(val name: String, val project: Project) {
         templateEngine.renderFile(template, target, valuesSaved)
     }
     fun valueSaveTemplate(template: Provider<RegularFile>, target: Provider<RegularFile>) = valueSave {
-        templateEngine.renderFile(template.get().asFile, target.get().asFile, valuesSaved)
+        templateEngine.renderFile(template.get().asFile, target.get().asFile, mapOf(TEMPLATE_PROP to valuesSaved))
     }
 
     fun valueSaveGradleProperties() {
@@ -253,7 +253,7 @@ open class Definition(val name: String, val project: Project) {
     }
 
     fun valueSaveGradleProperties(template: File, target: File) = valueSave {
-        val sectionContent = templateEngine.renderString(template.readText(), valuesSaved)
+        val sectionContent = templateEngine.renderString(template.readText(), mapOf(TEMPLATE_PROP to valuesSaved))
         val section = TemplateSection(name, listOf("") + sectionContent.lines() + listOf(""))
         section.save(target)
     }
@@ -277,5 +277,9 @@ open class Definition(val name: String, val project: Project) {
                 }
             }
         }
+    }
+
+    companion object {
+        const val TEMPLATE_PROP = "config"
     }
 }

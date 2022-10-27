@@ -16,11 +16,11 @@ class TemplateEngine(val project: Project) {
     val props = project.objects.mapProperty(String::class.java, Any::class.java).apply {
         set(mapOf())
         putAll(mapOf(
-            "env" to System.getenv(),
-            "system" to System.getProperties().entries.fold(mutableMapOf<String, String>()) { props, prop ->
+            ENV_PROP to System.getenv(),
+            SYSTEM_PROP to System.getProperties().entries.fold(mutableMapOf<String, String>()) { props, prop ->
                 props[prop.key.toString()] = prop.value.toString(); props
             },
-            "project" to project.provider { project.properties },
+            PROJECT_PROP to project.provider { project.properties },
         ))
     }
 
@@ -33,7 +33,7 @@ class TemplateEngine(val project: Project) {
             .extension(TemplateExtension(project))
             .autoEscaping(false)
             .cacheActive(false)
-            .strictVariables(true)
+            .strictVariables(false)
             .newLineTrimming(false)
             .loader(FileLoader())
             .syntax(
@@ -99,6 +99,12 @@ class TemplateEngine(val project: Project) {
     }
 
     companion object {
+
+        const val SYSTEM_PROP = "system"
+
+        const val ENV_PROP = "env"
+
+        const val PROJECT_PROP = "project"
 
         private val PROP_PATTERN = Pattern.compile("\\{\\{(.+?)}}")
 
