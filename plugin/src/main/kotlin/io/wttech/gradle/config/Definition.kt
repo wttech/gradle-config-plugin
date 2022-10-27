@@ -93,14 +93,15 @@ open class Definition(val name: String, val project: Project) {
         get() = props.associate { it.name to it.value() }.toSortedMap()
         set(vs) { vs.forEach { (k, v) -> findProp(k)?.valueSet(v) } }
 
-    private var valueSaveFilter: Prop.() -> Boolean = { true }
+    private var valueSaveFilter: (Prop) -> Boolean = { true }
 
-    fun valueSaveFilter(predicate: Prop.() -> Boolean) {
+    fun valueSaveFilter(predicate: (Prop) -> Boolean) {
         this.valueSaveFilter = predicate
     }
 
-    val valuesSaved: Map<String, Any?>
-        get() = props.filter(valueSaveFilter).associate { it.name to it.valueSaved() }.toSortedMap()
+    val valuesSaved: Map<String, Any?> get() = valuesSaved(valueSaveFilter)
+
+    fun valuesSaved(propFilter: (Prop) -> Boolean) = props.filter(propFilter).associate { it.name to it.valueSaved() }.toSortedMap()
 
     fun value(propName: String) = valueOrNull(propName)
         ?: throw ConfigException("Config '$name' prop '$propName' is null!")

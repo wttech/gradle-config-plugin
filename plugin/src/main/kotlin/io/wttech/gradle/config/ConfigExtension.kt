@@ -64,6 +64,8 @@ open class ConfigExtension(val project: Project) {
 
     val valuesSaved get() = get().valuesSaved
 
+    fun valuesSaved(propFilter: (Prop) -> Boolean) = get().valuesSaved(propFilter)
+
     fun value(propName: String) = read().value(propName)
 
     fun valueOrNull(propName: String) = read().valueOrNull(propName)
