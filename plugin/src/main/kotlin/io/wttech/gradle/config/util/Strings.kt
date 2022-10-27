@@ -7,7 +7,7 @@ fun String.capitalLetter() = this.replaceFirstChar { c -> if (c.isLowerCase()) c
 fun String.capitalWords() = this.toLowerSnakeCase().split("_").joinToString(" ") { it.capitalLetter() }
 
 fun String.removeCommonWords(other: String): String {
-    val words = LinkedList(this.split(" ") )
+    val words = LinkedList(this.split(" "))
     val otherWords = other.split(" ")
     for (otherWord in otherWords) {
         if (otherWord == words.peek()) words.pop() else break
