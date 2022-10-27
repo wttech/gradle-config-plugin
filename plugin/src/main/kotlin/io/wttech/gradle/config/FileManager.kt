@@ -34,6 +34,10 @@ class FileManager(val project: Project) {
 
     inline fun <reified T> readJson(file: File) = readFile(file) { json.get().readValue(it.bufferedReader(), T::class.java) }
 
+    fun readProperties(file: File): Map<String, Any> = readFile(file) {
+        Properties().apply { load(it) }.toMap().mapKeys { it.key.toString() }
+    }
+
     @Suppress("TooGenericExceptionCaught")
     inline fun <reified T> readFile(file: File, reader: (InputStream) -> T): T {
         val ext = file.extension.uppercase()

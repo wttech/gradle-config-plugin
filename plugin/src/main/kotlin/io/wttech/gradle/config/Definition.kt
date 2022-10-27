@@ -3,6 +3,7 @@ package io.wttech.gradle.config
 import io.wttech.gradle.config.cli.Cli
 import io.wttech.gradle.config.gui.Gui
 import io.wttech.gradle.config.tpl.TemplateEngine
+import io.wttech.gradle.config.tpl.TemplateSection
 import io.wttech.gradle.config.util.capitalLetter
 import io.wttech.gradle.config.util.capitalWords
 import io.wttech.gradle.config.util.rootCause
@@ -150,6 +151,7 @@ open class Definition(val name: String, val project: Project) {
         readCapturedValues()
         captureValues()
         if (debug.get()) printValues()
+        validateValues()
         saveValues()
     }
 
@@ -198,6 +200,7 @@ open class Definition(val name: String, val project: Project) {
             InputMode.GUI -> Gui.render(this)
             InputMode.CLI -> Cli.render(this)
             InputMode.FILE -> readInputValues()
+            InputMode.DEFAULTS -> { /* do nothing - use only defaults */ }
             else -> throw ConfigException("Config '$name' uses unsupported input mode!")
         }
     }
@@ -205,6 +208,13 @@ open class Definition(val name: String, val project: Project) {
     private fun printValues() {
         logger.info("Config '$name' values are as follows (debug mode is on)")
         println("\n${fileManager.yaml.get().dump(values)}\n")
+    }
+
+    private fun validateValues() {
+        val invalidProps = props.filter { !it.valid }.map { it.name }
+        if (invalidProps.isNotEmpty()) {
+            throw ConfigException("Config '$name' has invalid values of properties: '${invalidProps.joinToString(", ")}'!")
+        }
     }
 
     private val valueSavers = mutableSetOf<() -> Unit>()
@@ -238,12 +248,14 @@ open class Definition(val name: String, val project: Project) {
         templateEngine.renderFile(template.get().asFile, target.get().asFile, valuesSaved)
     }
 
-    fun valueSaveGradleProperties() = valueSave {
-        val template = project.file("gradle.properties.peb")
-        val target = project.file("gradle.properties")
+    fun valueSaveGradleProperties() {
+        valueSaveGradleProperties(project.file("gradle.properties.peb"), project.file("gradle.properties"))
+    }
 
-        logger.info("Config '$name' is saving Gradle properties file '$target'.\nEnsure having it ignored by version control system (like Git)!")
-        templateEngine.renderFile(template, target, valuesSaved)
+    fun valueSaveGradleProperties(template: File, target: File) = valueSave {
+        val sectionContent = templateEngine.renderString(template.readText(), valuesSaved)
+        val section = TemplateSection(name, listOf("") + sectionContent.lines() + listOf(""))
+        section.save(target)
     }
 
     @Suppress("TooGenericExceptionCaught")

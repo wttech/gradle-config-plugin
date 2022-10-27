@@ -24,6 +24,10 @@ open class Config : DefaultTask() {
     val file = project.objects.property(String::class.java)
 
     @Internal
+    @Option(option = "defaults", description = "Skip capturing input values (use only defaults)")
+    val defaults = project.objects.property(Boolean::class.java)
+
+    @Internal
     @Option(option = "debug-config", description = "Prints additional information useful in debugging")
     val debug = project.objects.property(Boolean::class.java)
 
@@ -36,13 +40,15 @@ open class Config : DefaultTask() {
     fun capture() {
         val def = definition.get()
 
-        if (debug.isPresent) def.debug.set(debug.get())
+        if (defaults.isPresent) def.inputMode.set(InputMode.DEFAULTS)
         if (file.isPresent) {
             def.inputMode.set(InputMode.FILE)
             def.inputFile.set(project.file(file.get()))
         }
         if (cli.isPresent) def.inputMode.set(InputMode.CLI)
         if (gui.isPresent) def.inputMode.set(InputMode.GUI)
+
+        if (debug.isPresent) def.debug.set(debug.get())
 
         try {
             def.capture()

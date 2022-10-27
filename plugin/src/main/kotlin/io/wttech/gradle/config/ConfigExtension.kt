@@ -104,9 +104,11 @@ open class ConfigExtension(val project: Project) {
 
     // Utilities
 
-    fun fileManager() = FileManager(project)
+    fun fileManager(options: FileManager.() -> Unit) = FileManager(project).apply(options)
 
-    fun templateEngine() = TemplateEngine(project)
+    fun templateEngine(options: TemplateEngine.() -> Unit) = TemplateEngine(project).apply(options)
+
+    fun propertyManager(options: PropertyLoader.() -> Unit) = PropertyLoader(project).apply(options)
 
     companion object {
         const val NAME = "config"

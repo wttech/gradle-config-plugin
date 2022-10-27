@@ -1,6 +1,7 @@
 package io.wttech.gradle.config
 
 enum class InputMode {
+    DEFAULTS,
     GUI,
     CLI,
     FILE;
