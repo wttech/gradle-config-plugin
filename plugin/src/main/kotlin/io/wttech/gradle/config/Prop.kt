@@ -3,6 +3,8 @@ package io.wttech.gradle.config
 import io.wttech.gradle.config.prop.ListProp
 import io.wttech.gradle.config.prop.MapProp
 import io.wttech.gradle.config.prop.StringProp
+import io.wttech.gradle.config.util.removeCommonWords
+import java.util.*
 
 abstract class Prop(val group: Group, val name: String) {
 
@@ -16,8 +18,7 @@ abstract class Prop(val group: Group, val name: String) {
     fun proposeLabel(): String {
         val propLabel = group.definition.composeLabel(name)
         val groupLabel = group.label.get()
-        val commonPrefix = propLabel.commonPrefixWith(groupLabel, true)
-        return propLabel.removePrefix(commonPrefix).trim().ifEmpty { propLabel }
+        return propLabel.removeCommonWords(groupLabel)
     }
 
     fun label(text: String) {

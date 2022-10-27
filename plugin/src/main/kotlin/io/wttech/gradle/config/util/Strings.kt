@@ -6,6 +6,15 @@ fun String.capitalLetter() = this.replaceFirstChar { c -> if (c.isLowerCase()) c
 
 fun String.capitalWords() = this.toLowerSnakeCase().split("_").joinToString(" ") { it.capitalLetter() }
 
+fun String.removeCommonWords(other: String): String {
+    val words = LinkedList(this.split(" ") )
+    val otherWords = other.split(" ")
+    for (otherWord in otherWords) {
+        if (otherWord == words.peek()) words.pop() else break
+    }
+    return words.joinToString(" ")
+}
+
 fun String.fromBase64() = String(Base64.getDecoder().decode(this))
 
 fun String.toBase64() = Base64.getEncoder().encodeToString(this.toByteArray())
