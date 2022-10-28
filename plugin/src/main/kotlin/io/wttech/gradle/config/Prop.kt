@@ -4,7 +4,6 @@ import io.wttech.gradle.config.prop.ListProp
 import io.wttech.gradle.config.prop.MapProp
 import io.wttech.gradle.config.prop.StringProp
 import io.wttech.gradle.config.util.removeCommonWords
-import java.util.*
 
 abstract class Prop(val group: Group, val name: String) {
 
@@ -39,9 +38,12 @@ abstract class Prop(val group: Group, val name: String) {
         visible.set(project.provider { predicate() })
     }
 
+    internal var captured = true
+
     fun const() {
+        captured = false
         visible.set(false)
-        visible.finalizeValue()
+        enabled.set(false)
     }
 
     val enabled = project.objects.property(Boolean::class.java).convention(true)

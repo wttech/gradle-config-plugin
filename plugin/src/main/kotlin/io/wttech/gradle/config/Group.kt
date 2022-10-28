@@ -47,22 +47,22 @@ class Group(val definition: Definition, val name: String) {
         props.add(project.provider { StringProp(this, name).apply(options) })
     }
 
-    fun stringConst(name: String, value: String?) = stringProp(name) { const(); valueSet(value) }
-    fun stringConst(name: String, valueProvider: () -> String?) = stringProp(name) { const(); value.set(project.provider(valueProvider)) }
+    fun stringConst(name: String, value: String?) = stringProp(name) { valueSet(value); const(); }
+    fun stringConst(name: String, valueProvider: () -> String?) = stringProp(name) { value.set(project.provider(valueProvider)); const(); }
 
     fun listProp(name: String, options: ListProp.() -> Unit = {}) {
         props.add(project.provider { ListProp(this, name).apply(options) })
     }
 
-    fun listConst(name: String, value: Any?) = listProp(name) { const(); valueSet(value) }
-    fun listConst(name: String, valueProvider: () -> List<String>?) = listProp(name) { const(); value.set(project.provider(valueProvider)) }
+    fun listConst(name: String, value: Any?) = listProp(name) { valueSet(value); const(); }
+    fun listConst(name: String, valueProvider: () -> List<String>?) = listProp(name) { value.set(project.provider(valueProvider)); const(); }
 
     fun mapProp(name: String, options: MapProp.() -> Unit = {}) {
         props.add(project.provider { MapProp(this, name).apply(options) })
     }
 
-    fun mapConst(name: String, value: Any?) = mapProp(name) { const(); valueSet(value) }
-    fun mapConst(name: String, valueProvider: () -> Map<String, Any?>?) = mapProp(name) { const(); value.set(project.provider(valueProvider)) }
+    fun mapConst(name: String, value: Any?) = mapProp(name) { valueSet(value); const() }
+    fun mapConst(name: String, valueProvider: () -> Map<String, Any?>?) = mapProp(name) { value.set(project.provider(valueProvider)); const(); }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -89,9 +89,17 @@ open class Definition(val name: String, val project: Project) {
     fun getProp(propName: String) = findProp(propName)
         ?: throw ConfigException("Prop '$propName' is not defined!")
 
+    /**
+     * All values without type coercion applied
+     */
     var values: Map<String, Any?>
         get() = props.associate { it.name to it.value() }.toSortedMap()
         set(vs) { vs.forEach { (k, v) -> findProp(k)?.valueSet(v) } }
+
+    /**
+     * All values except constants without type coercion applied
+     */
+    private val valuesCaptured get() = props.filter { it.captured }.associate { it.name to it.value() }.toSortedMap()
 
     private var valueSaveFilter: (Prop) -> Boolean = { true }
 
@@ -99,6 +107,9 @@ open class Definition(val name: String, val project: Project) {
         this.valueSaveFilter = predicate
     }
 
+    /**
+     * All values but with type coercion applied
+     */
     val valuesSaved: Map<String, Any?> get() = valuesSaved(valueSaveFilter)
 
     fun valuesSaved(propFilter: (Prop) -> Boolean) = props.filter(propFilter).associate { it.name to it.valueSaved() }.toSortedMap()
@@ -153,7 +164,8 @@ open class Definition(val name: String, val project: Project) {
         captureValues()
         if (debug.get()) printValues()
         validateValues()
-        saveValues()
+        saveCapturedValues()
+        saveValuesUsingSavers()
     }
 
     internal fun finalize() {
@@ -259,13 +271,15 @@ open class Definition(val name: String, val project: Project) {
         section.save(target)
     }
 
-    @Suppress("TooGenericExceptionCaught")
-    private fun saveValues() {
+    private fun saveCapturedValues() {
         outputCapturedFile.get().asFile.let { file ->
             logger.info("Config '$name' is saving captured values to file '$file'")
-            fileManager.writeYml(file, values)
+            fileManager.writeYml(file, valuesCaptured)
         }
+    }
 
+    @Suppress("TooGenericExceptionCaught")
+    private fun saveValuesUsingSavers() {
         if (valueSavers.isNotEmpty()) {
             logger.info("Config '$name' is saving values additionally (${valueSavers.size})'")
             valueSavers.forEach { valueSaver ->
