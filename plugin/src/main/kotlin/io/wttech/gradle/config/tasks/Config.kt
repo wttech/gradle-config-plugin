@@ -24,6 +24,10 @@ open class Config : DefaultTask() {
     val file = project.objects.property(String::class.java)
 
     @Internal
+    @Option(option = "fresh", description = "Skip already captured input values (like running the first time again)")
+    val fresh = project.objects.property(Boolean::class.java)
+
+    @Internal
     @Option(option = "defaults", description = "Skip capturing input values (use only defaults)")
     val defaults = project.objects.property(Boolean::class.java)
 
@@ -48,6 +52,7 @@ open class Config : DefaultTask() {
         if (cli.isPresent) def.inputMode.set(InputMode.CLI)
         if (gui.isPresent) def.inputMode.set(InputMode.GUI)
 
+        if (fresh.isPresent) def.fresh.set(fresh.get())
         if (debug.isPresent) def.debug.set(debug.get())
 
         try {

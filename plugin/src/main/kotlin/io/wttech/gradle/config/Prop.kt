@@ -38,10 +38,7 @@ abstract class Prop(val group: Group, val name: String) {
         visible.set(project.provider { predicate() })
     }
 
-    internal var captured = true
-
     fun const() {
-        captured = false
         visible.set(false)
         enabled.set(false)
     }

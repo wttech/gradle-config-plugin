@@ -45,6 +45,10 @@ open class Definition(val name: String, val project: Project) {
 
     val inputFile = project.objects.fileProperty()
 
+    val fresh = project.objects.property(Boolean::class.java).apply {
+        convention(false)
+    }
+
     val debug = project.objects.property(Boolean::class.java).apply {
         convention(false)
     }
@@ -89,17 +93,9 @@ open class Definition(val name: String, val project: Project) {
     fun getProp(propName: String) = findProp(propName)
         ?: throw ConfigException("Prop '$propName' is not defined!")
 
-    /**
-     * All values without type coercion applied
-     */
     var values: Map<String, Any?>
         get() = props.associate { it.name to it.value() }.toSortedMap()
         set(vs) { vs.forEach { (k, v) -> findProp(k)?.valueSet(v) } }
-
-    /**
-     * All values except constants without type coercion applied
-     */
-    private val valuesCaptured get() = props.filter { it.captured }.associate { it.name to it.value() }.toSortedMap()
 
     private var valueSaveFilter: (Prop) -> Boolean = { true }
 
@@ -107,9 +103,6 @@ open class Definition(val name: String, val project: Project) {
         this.valueSaveFilter = predicate
     }
 
-    /**
-     * All values but with type coercion applied
-     */
     val valuesSaved: Map<String, Any?> get() = valuesSaved(valueSaveFilter)
 
     fun valuesSaved(propFilter: (Prop) -> Boolean) = props.filter(propFilter).associate { it.name to it.valueSaved() }.toSortedMap()
@@ -160,7 +153,7 @@ open class Definition(val name: String, val project: Project) {
     fun capture() {
         finalize()
         if (debug.get()) printDefinitions()
-        readCapturedValues()
+        if (!fresh.get()) readCapturedValues()
         captureValues()
         if (debug.get()) printValues()
         validateValues()
@@ -274,7 +267,7 @@ open class Definition(val name: String, val project: Project) {
     private fun saveCapturedValues() {
         outputCapturedFile.get().asFile.let { file ->
             logger.info("Config '$name' is saving captured values to file '$file'")
-            fileManager.writeYml(file, valuesCaptured)
+            fileManager.writeYml(file, values)
         }
     }
 
