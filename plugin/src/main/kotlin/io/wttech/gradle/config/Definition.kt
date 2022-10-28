@@ -217,9 +217,11 @@ open class Definition(val name: String, val project: Project) {
     }
 
     private fun validateValues() {
-        val invalidProps = props.filter { !it.valid }.map { it.name }
+        val invalidProps = props.filter { !it.valid }
         if (invalidProps.isNotEmpty()) {
-            throw ConfigException("Config '$name' has invalid values of properties: '${invalidProps.joinToString(", ")}'!")
+            throw ConfigException((listOf("Config '$name' does not pass validation! Issues found (${invalidProps.size}):") + invalidProps.map {
+                "Property '${it.name}' with value '${it.value()}' | ${it.validation}"
+            }).joinToString("\n"))
         }
     }
 
