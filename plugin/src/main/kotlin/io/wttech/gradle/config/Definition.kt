@@ -97,6 +97,8 @@ open class Definition(val name: String, val project: Project) {
         get() = props.associate { it.name to it.value() }.toSortedMap()
         set(vs) { vs.forEach { (k, v) -> findProp(k)?.valueSet(v) } }
 
+    private val valuesCaptured get() = props.filter { it.captured }.associate { it.name to it.value() }.toSortedMap()
+
     private var valueSaveFilter: (Prop) -> Boolean = { true }
 
     fun valueSaveFilter(predicate: (Prop) -> Boolean) {
@@ -269,7 +271,7 @@ open class Definition(val name: String, val project: Project) {
     private fun saveCapturedValues() {
         outputCapturedFile.get().asFile.let { file ->
             logger.info("Config '$name' is saving captured values to file '$file'")
-            fileManager.writeYml(file, values)
+            fileManager.writeYml(file, valuesCaptured)
         }
     }
 

@@ -80,7 +80,7 @@ class Cli(val definition: Definition) {
 
     private fun updateProperty() {
         val propEnabled = definition.props
-            .filter { it.group.visible.get() && it.visible.get() && it.enabled.get() }
+            .filter { it.group.visible.get() && it.captured && it.visible.get() && it.enabled.get() }
             .map { "${it.name} : ${it.value()?.toString()}" }
 
         val propName = userInput.selectOption("Select property", propEnabled, "none").substringBefore(":").trim()

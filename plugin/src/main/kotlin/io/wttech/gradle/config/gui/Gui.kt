@@ -144,7 +144,7 @@ class Gui(val definition: Definition) {
                     }, "growx, wrap, top")
                 }
 
-                group.props.get().forEach { prop: Prop ->
+                group.props.get().filter { it.captured }.forEach { prop: Prop ->
                     tab.add(JPanel(MigLayout(layoutConstraints("fill", "insets 1"))).also { propPanel ->
                         propPanel.add(JLabel(prop.label.get()), "wrap")
                         if (!prop.description.orNull.isNullOrBlank()) {
