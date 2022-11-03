@@ -69,6 +69,8 @@ class Group(val definition: Definition, val name: String) {
     fun mapConst(name: String, value: Any?) = mapProp(name) { valueSet(value); const() }
     fun mapConst(name: String, valueProvider: () -> Map<String, Any?>?) = mapProp(name) { value.set(project.provider(valueProvider)); const(); }
 
+    val valid get() = props.get().all { it.valid }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

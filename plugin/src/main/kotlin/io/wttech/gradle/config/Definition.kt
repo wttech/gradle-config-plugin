@@ -65,6 +65,8 @@ open class Definition(val name: String, val project: Project) {
 
     val captured get() = outputCapturedFile.get().asFile.exists()
 
+    val valid get() = groups.get().all { it.valid }
+
     fun outputFile(extension: String) = outputDir.map { it.file("$name.$extension") }
 
     fun outputFile(type: FileType) = outputFile(type.extension())

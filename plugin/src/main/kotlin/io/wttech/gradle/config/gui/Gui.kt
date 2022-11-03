@@ -222,6 +222,8 @@ class Gui(val definition: Definition) {
 
     private var groupsVisibleOld = -1
 
+    private var tabPaneBgColorDefault: Color? = null
+
     /**
      * There is no direct way to hide particular panel.
      * As a workaround, only visible tabs are recreated.
@@ -234,12 +236,20 @@ class Gui(val definition: Definition) {
         val groupsVisibleNew = groupsVisible.map { Pair(it.name, it.visible.get()) }.hashCode()
         if (groupsVisibleOld != groupsVisibleNew) {
             tabPane.removeAll()
-            groupTabs.filter { it.group.visible.get() }.forEachIndexed { index, groupTab ->
+            groupTabs.filter { it.group.visible.get() }.forEach { groupTab ->
                 tabPane.addTab(groupTab.group.label.get(), groupTab.panel)
-                tabPane.setEnabledAt(index, groupTab.group.enabled.get())
             }
             groupsVisibleOld = groupsVisibleNew
             updated = true
+        }
+
+        groupTabs.filter { it.group.visible.get() }.forEachIndexed { index, groupTab ->
+            tabPane.setEnabledAt(index, groupTab.group.enabled.get())
+
+            if (tabPaneBgColorDefault == null) {
+                tabPaneBgColorDefault = tabPane.getBackgroundAt(index)
+            }
+            tabPane.setBackgroundAt(index, if (groupTab.group.valid) tabPaneBgColorDefault else Color(255, 200, 200))
         }
 
         return updated
@@ -301,7 +311,7 @@ class Gui(val definition: Definition) {
 
     private fun updateActionPanel() {
         pathButton.isEnabled = (textComponentFocused != null) && propPanels.any { it.field is JTextComponent }
-        applyButton.isEnabled = definition.props.all { it.valid }
+        applyButton.isEnabled = definition.valid
     }
 
     companion object {
