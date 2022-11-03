@@ -14,6 +14,7 @@ import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
+import java.util.concurrent.locks.ReentrantLock
 import javax.swing.*
 import javax.swing.text.JTextComponent
 
@@ -230,15 +231,12 @@ class Gui(val definition: Definition) {
         val groupsVisibleNew = groupsVisible.map { Pair(it.name, it.visible.get()) }.hashCode()
         if (groupsVisibleOld != groupsVisibleNew) {
             tabPane.removeAll()
-            groupTabs.filter { it.group.visible.get() }.forEach { groupTab ->
+            groupTabs.filter { it.group.visible.get() }.forEachIndexed { index, groupTab ->
                 tabPane.addTab(groupTab.group.label.get(), groupTab.panel)
+                tabPane.setEnabledAt(index, groupTab.group.enabled.get())
             }
             groupsVisibleOld = groupsVisibleNew
             updated = true
-        }
-
-        groupTabs.filter { it.group.visible.get() }.forEachIndexed { index, groupTab ->
-            tabPane.setEnabledAt(index, groupTab.group.enabled.get())
         }
 
         return updated
@@ -263,7 +261,7 @@ class Gui(val definition: Definition) {
                         is StringProp -> when {
                             panel.data.options.get().isNotEmpty() -> when (normalizedValue) {
                                 in panel.data.options.get() -> normalizedValue
-                                else -> null
+                                else -> panel.data.options.get().first()
                             }
                             else -> normalizedValue
                         }
@@ -290,6 +288,8 @@ class Gui(val definition: Definition) {
     }
 
     fun render(initial: Boolean = false) {
+        if (!initial) updateMalformedData()
+
         val groupTabsUpdated = updateGroupTabs()
         updatePropPanels()
         updateActionPanel()
@@ -298,6 +298,18 @@ class Gui(val definition: Definition) {
         if (initial) dialog.centre()
 
         dialog.isVisible = true
+    }
+
+    private fun updateMalformedData() {
+        definition.props.forEach {prop ->
+            if (prop is StringProp) {
+                if (prop.options.get().isNotEmpty()) {
+                    if (prop.value() !in prop.options.get()) {
+                        prop.valueSet(prop.options.get().first())
+                    }
+                }
+            }
+        }
     }
 
     private fun updateActionPanel() {
