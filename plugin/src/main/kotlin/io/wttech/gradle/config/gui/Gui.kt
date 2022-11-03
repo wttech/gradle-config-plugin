@@ -293,12 +293,8 @@ class Gui(val definition: Definition) {
 
     private fun updateMalformedData() {
         definition.props.forEach { prop ->
-            if (prop is StringProp) {
-                if (prop.options.get().isNotEmpty()) {
-                    if (prop.value() !in prop.options.get()) {
-                        prop.valueSet(prop.options.get().first())
-                    }
-                }
+            if (prop is StringProp && prop.options.get().isNotEmpty() && prop.value() !in prop.options.get()) {
+                prop.valueSet(prop.options.get().first())
             }
         }
     }
