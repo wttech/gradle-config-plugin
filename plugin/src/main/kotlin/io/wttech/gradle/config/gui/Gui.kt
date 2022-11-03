@@ -14,7 +14,6 @@ import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
-import java.util.concurrent.locks.ReentrantLock
 import javax.swing.*
 import javax.swing.text.JTextComponent
 
@@ -244,7 +243,7 @@ class Gui(val definition: Definition) {
 
     fun updatePropPanels() {
         propPanels.forEach { panel ->
-            // fix two-way syncing for text field and area (combo works fine)
+            // fix two-way syncing
             val normalizedValue by lazy {
                 when (panel.data) {
                     is ListProp -> panel.data.value()?.joinToString("\n")
@@ -255,19 +254,7 @@ class Gui(val definition: Definition) {
             when {
                 panel.field is JTextField && panel.field.text != normalizedValue -> tryMutate { panel.field.text = normalizedValue }
                 panel.field is JTextArea && panel.field.text != normalizedValue -> tryMutate { panel.field.text = normalizedValue }
-                // TODO make it nicer (sync two-way)
-                panel.field is JComboBox<*> && panel.field.selectedItem != normalizedValue -> tryMutate {
-                    panel.field.selectedItem = when (panel.data) {
-                        is StringProp -> when {
-                            panel.data.options.get().isNotEmpty() -> when (normalizedValue) {
-                                in panel.data.options.get() -> normalizedValue
-                                else -> panel.data.options.get().first()
-                            }
-                            else -> normalizedValue
-                        }
-                        else -> normalizedValue
-                    }
-                }
+                panel.field is JComboBox<*> && panel.field.selectedItem != normalizedValue -> tryMutate { panel.field.selectedItem = normalizedValue }
             }
 
             panel.container.isVisible = panel.data.visible.get()
@@ -301,7 +288,7 @@ class Gui(val definition: Definition) {
     }
 
     private fun updateMalformedData() {
-        definition.props.forEach {prop ->
+        definition.props.forEach { prop ->
             if (prop is StringProp) {
                 if (prop.options.get().isNotEmpty()) {
                     if (prop.value() !in prop.options.get()) {
