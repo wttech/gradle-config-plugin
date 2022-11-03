@@ -125,7 +125,7 @@ class Gui(val definition: Definition) {
         else -> throw ConfigException("Config property '${prop.name}' has invalid type!")
     }
 
-    class GroupTab(val group: Group, val panel: JPanel)
+    class GroupTab(val group: Group, val panel: JComponent)
     private val groupTabs = mutableListOf<GroupTab>()
 
     private val tabPane = JTabbedPane().also { tabs ->
@@ -178,7 +178,11 @@ class Gui(val definition: Definition) {
                     }, "growx, wrap, top, hidemode 1")
                 }
             }
-            groupTabs.add(GroupTab(group, panel))
+            val scrollPane = JScrollPane(panel).apply {
+                horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+                verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
+            }
+            groupTabs.add(GroupTab(group, scrollPane))
         }
     }
 

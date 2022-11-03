@@ -300,6 +300,13 @@ open class Definition(val name: String, val project: Project) {
         }
     }
 
+    init {
+        labelAbbrs(
+            "id", "url", "http", "https", "sftp", "ftp", "ssh", "aws", "az", "gcp",
+            "ad", "tf", "tcp", "udp", "html", "css", "js", "sso"
+        )
+    }
+
     companion object {
         const val TEMPLATE_PROP = "config"
     }
