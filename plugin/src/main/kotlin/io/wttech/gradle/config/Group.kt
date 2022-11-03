@@ -43,6 +43,11 @@ class Group(val definition: Definition, val name: String) {
     fun const(name: String, value: String?) = stringConst(name, value)
     fun const(name: String, valueProvider: () -> String?) = stringConst(name, valueProvider)
 
+    fun findProp(name: String): Prop? = props.get().firstOrNull { it.name == name }
+
+    fun getProp(name: String) = findProp(name)
+        ?: throw ConfigException("Prop '$name' is not defined in group '$name'!")
+
     fun stringProp(name: String, options: StringProp.() -> Unit = {}) {
         props.add(project.provider { StringProp(this, name).apply(options) })
     }

@@ -257,6 +257,19 @@ class Gui(val definition: Definition) {
             when {
                 panel.field is JTextField && panel.field.text != normalizedValue -> tryMutate { panel.field.text = normalizedValue }
                 panel.field is JTextArea && panel.field.text != normalizedValue -> tryMutate { panel.field.text = normalizedValue }
+                // TODO make it nicer (sync two-way)
+                panel.field is JComboBox<*> && panel.field.selectedItem != normalizedValue -> tryMutate {
+                    panel.field.selectedItem = when (panel.data) {
+                        is StringProp -> when {
+                            panel.data.options.get().isNotEmpty() -> when (normalizedValue) {
+                                in panel.data.options.get() -> normalizedValue
+                                else -> null
+                            }
+                            else -> normalizedValue
+                        }
+                        else -> normalizedValue
+                    }
+                }
             }
 
             panel.container.isVisible = panel.data.visible.get()

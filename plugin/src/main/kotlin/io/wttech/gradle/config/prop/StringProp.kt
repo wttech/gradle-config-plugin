@@ -16,6 +16,10 @@ class StringProp(group: Group, name: String) : Prop(group, name) {
     }
     fun options(vararg options: String) = options(options.asIterable())
 
+    fun optionsDynamic(provider: () -> Iterable<String>) {
+        this.options.set(project.provider { provider() })
+    }
+
     val optionsStyle = project.objects.property(OptionsStyle::class.java).convention(OptionsStyle.SELECT)
 
     enum class OptionsStyle {

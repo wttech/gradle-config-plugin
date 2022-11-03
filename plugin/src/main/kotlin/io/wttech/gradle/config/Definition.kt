@@ -83,7 +83,6 @@ open class Definition(val name: String, val project: Project) {
         groups.add(project.provider { Group(this, groupName).apply(options) })
     }
 
-    @Suppress("unchecked_cast")
     val props get() = groups.get().flatMap { it.props.get() } as List<Prop>
 
     fun findProp(propName: String) = props.firstOrNull { it.name == propName }
@@ -166,6 +165,16 @@ open class Definition(val name: String, val project: Project) {
     internal fun finalize() {
         groups.finalizeValueOnRead()
         groups.get().forEach { it.props.finalizeValueOnRead() }
+        validate()
+    }
+
+    private fun validate() {
+        val propsDuplicated = props.filter { p -> props.count { it.name == p.name } > 1 }.sortedBy { it.name }
+        if (propsDuplicated.isNotEmpty()) {
+            throw ConfigException((listOf(
+                "Config '$name' has duplicated properties (${propsDuplicated.size})!"
+            ) + propsDuplicated.map { "Property '${it.name}' defined in group '${it.group.name}'" }).joinToString("\n"))
+        }
     }
 
     private fun printDefinitions() {
@@ -196,7 +205,7 @@ open class Definition(val name: String, val project: Project) {
 
         logger.info("Config '$name' is reading values from input file '$file'")
         values = when (file.extension) {
-            "yml" -> fileManager.readYml(file)
+            "yml", "yaml" -> fileManager.readYml(file)
             "json" -> fileManager.readJson(file)
             else -> throw ConfigException("Config '$name' cannot read values from unsupported type of input file '$file'!")
         }
@@ -278,7 +287,7 @@ open class Definition(val name: String, val project: Project) {
     @Suppress("TooGenericExceptionCaught")
     private fun saveValuesUsingSavers() {
         if (valueSavers.isNotEmpty()) {
-            logger.info("Config '$name' is saving values additionally (${valueSavers.size})'")
+            logger.info("Config '$name' is saving values additionally (${valueSavers.size})")
             valueSavers.forEach { valueSaver ->
                 try {
                     valueSaver()
