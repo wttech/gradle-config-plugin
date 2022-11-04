@@ -61,6 +61,10 @@ class Cli(val definition: Definition) {
                     println("  ${prop.label.get()} (${prop.name})")
                     println("    Value: ${prop.value()?.toString()?.ifBlank { "<empty>" }}")
 
+                    if (prop is StringProp && prop.valueType.get() != StringProp.ValueType.BOOL && prop.options.get().isNotEmpty()) {
+                        println("    Options: ${prop.options.get().joinToString(", ")}")
+                    }
+
                     val desc = prop.description.orNull?.trim()
                     if (!desc.isNullOrBlank()) {
                         if (desc.contains("\n")) {
