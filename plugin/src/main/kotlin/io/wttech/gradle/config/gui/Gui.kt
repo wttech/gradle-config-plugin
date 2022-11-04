@@ -188,6 +188,7 @@ class Gui(val definition: Definition) {
 
     private val pathChooser by lazy {
         JFileChooser().apply {
+            currentDirectory = definition.project.rootProject.layout.projectDirectory.asFile
             fileSelectionMode = JFileChooser.FILES_AND_DIRECTORIES
             isFileHidingEnabled = false
         }
