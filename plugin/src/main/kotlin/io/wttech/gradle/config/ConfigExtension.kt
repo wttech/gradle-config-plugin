@@ -35,7 +35,7 @@ open class ConfigExtension(val project: Project) {
 
     fun String.invoke(options: Definition.() -> Unit) = define(this, options)
 
-    fun captured(name: String) = named(name)
+    fun captured(name: String) = named(name).captured
 
     val captured get() = captured(DEFAULT_NAME)
 
