@@ -42,10 +42,13 @@ tasks {
     afterReleaseBuild {
         dependsOn(":plugin:publishPlugins")
     }
+    named("release") {
+        dependsOn(":plugin:build", ":plugin:functionalTest")
+    }
     named("githubRelease") {
-        mustRunAfter(release)
+        mustRunAfter(":release")
     }
     register("fullRelease") {
-        dependsOn("release", "githubRelease")
+        dependsOn(":release", ":githubRelease")
     }
 }
