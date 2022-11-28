@@ -110,6 +110,8 @@ open class Definition(val name: String, val project: Project) {
 
     fun valuesSaved(propFilter: (Prop) -> Boolean) = props.filter(propFilter).associate { it.name to it.valueSaved() }.toSortedMap()
 
+    fun valueSaved(propName: String) = getProp(propName).valueSaved()
+
     fun value(propName: String) = valueOrNull(propName)
         ?: throw ConfigException("Config '$name' prop '$propName' is null!")
 
