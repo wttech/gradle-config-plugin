@@ -8,6 +8,8 @@ import io.wttech.gradle.config.*
 import io.wttech.gradle.config.prop.ListProp
 import io.wttech.gradle.config.prop.MapProp
 import io.wttech.gradle.config.prop.StringProp
+import net.miginfocom.layout.CC
+import net.miginfocom.layout.LC
 import net.miginfocom.swing.MigLayout
 import java.awt.*
 import java.awt.event.FocusEvent
@@ -24,13 +26,13 @@ class Gui(val definition: Definition) {
 
     private var cancelled = false
 
-    fun layoutConstraints(vararg constraints: String) = constraints.toMutableList().apply {
-        if (definition.debug.get()) add("debug")
-    }.joinToString(",")
+    private fun lc() = LC().apply {
+        if (definition.debug.get()) this.debug(100)
+    }
 
     private val dialog = JDialog().apply {
         title = definition.label.get()
-        layout = MigLayout(layoutConstraints("fill", "w :640:", "h :480:"))
+        layout = MigLayout(lc().fill().width("640").height("480"))
         isAlwaysOnTop = true
         isModal = true
         isResizable = true
@@ -131,27 +133,27 @@ class Gui(val definition: Definition) {
     private val tabPane = JTabbedPane().also { tabs ->
         tabs.tabLayoutPolicy = JTabbedPane.SCROLL_TAB_LAYOUT
 
-        dialog.add(tabs, "grow, span, wrap")
+        dialog.add(tabs, CC().grow().span().wrap())
 
         definition.groups.get().forEach { group ->
-            val panel = JPanel(MigLayout(layoutConstraints("fillx", "insets 10"))).also { tab ->
+            val panel = JPanel(MigLayout(lc().fillX().insets("10"))).also { tab ->
                 if (!group.description.orNull.isNullOrBlank()) {
-                    tab.add(JPanel(MigLayout(layoutConstraints("fill", "insets 1"))).also { groupPanel ->
+                    tab.add(JPanel(MigLayout(lc().fill().insets("1"))).also { groupPanel ->
                         groupPanel.add(JLabel().apply {
                             textFormatted(group.description.get())
                             font = scaleFont()
-                        }, "wrap")
-                    }, "growx, wrap, top")
+                        }, CC().wrap())
+                    }, CC().growX().wrap().alignY("top"))
                 }
 
                 group.props.get().filter { it.captured }.forEach { prop: Prop ->
-                    tab.add(JPanel(MigLayout(layoutConstraints("fill", "insets 1"))).also { propPanel ->
-                        propPanel.add(JLabel(prop.label.get()), "wrap")
+                    tab.add(JPanel(MigLayout(lc().fill().insets("1"))).also { propPanel ->
+                        propPanel.add(JLabel(prop.label.get()), CC().wrap())
                         if (!prop.description.orNull.isNullOrBlank()) {
                             propPanel.add(JLabel().apply {
                                 textFormatted(prop.description.get())
                                 font = scaleFont()
-                            }, "wrap")
+                            }, CC().wrap())
                         }
                         val propField = propField(prop).apply {
                             addFocusListener(object : FocusListener {
@@ -166,20 +168,20 @@ class Gui(val definition: Definition) {
                             })
                         }
                         when (propField) {
-                            is JTextArea -> propPanel.add(propField, "w 300::, h 60::, growx, wrap")
-                            else -> propPanel.add(propField, "w 300::, growx, wrap")
+                            is JTextArea -> propPanel.add(propField, CC().minWidth("300").minHeight("60").growX().wrap())
+                            else -> propPanel.add(propField, CC().minWidth("300").growX().wrap())
                         }
                         val validationLabel = JLabel().apply {
                             font = scaleFont()
                             foreground = Color(221, 76, 85) // #DD4C55
                         }
-                        propPanel.add(validationLabel, "wrap")
+                        propPanel.add(validationLabel, CC().wrap())
                         propPanels.add(PropPanel(prop, propPanel, propField, validationLabel))
-                    }, "growx, wrap, top, hidemode 1")
+                    }, CC().growX().wrap().hideMode(1).alignY("top"))
                 }
             }
             val scrollPane = JScrollPane(panel).apply {
-                horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+                horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
                 verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
             }
             groupTabs.add(GroupTab(group, scrollPane))
@@ -215,10 +217,10 @@ class Gui(val definition: Definition) {
         addActionListener { dialog.dispose() }
     }
 
-    private val actionsPanel = JPanel(MigLayout(layoutConstraints("fill"))).apply {
-        add(pathButton, "align right")
-        add(applyButton, "align left")
-        dialog.add(this, "span, growx, wrap, south")
+    private val actionsPanel = JPanel(MigLayout(lc().fill())).apply {
+        add(pathButton, CC().alignX("right"))
+        add(applyButton, CC().alignX("left"))
+        dialog.add(this, CC().span().growX().wrap().dockSouth())
     }
 
     private var groupsVisibleOld = -1
