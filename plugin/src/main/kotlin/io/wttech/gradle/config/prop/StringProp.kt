@@ -70,7 +70,7 @@ class StringProp(group: Group, name: String) : Prop(group, name) {
 
     private var valueSaved: (String?) -> Any? = { v ->
         when (valueType.get()) {
-            ValueType.PATH -> v?.let { v.replace("\\", "/")}
+            ValueType.PATH -> v?.let { v.replace("\\", "/") }
             ValueType.BOOL -> v?.toBoolean()
             ValueType.INT -> v?.toInt()
             ValueType.DOUBLE -> v?.toDouble()
