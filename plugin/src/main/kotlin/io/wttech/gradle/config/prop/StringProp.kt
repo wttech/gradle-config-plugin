@@ -39,10 +39,13 @@ class StringProp(group: Group, name: String) : Prop(group, name) {
 
     fun password() = valueTypePassword()
 
+    fun path() = valueTypePath()
+
     val valueType = project.objects.property(ValueType::class.java).convention(ValueType.STRING)
 
     enum class ValueType {
         STRING,
+        PATH,
         PASSWORD,
         INT,
         DOUBLE,
@@ -50,6 +53,7 @@ class StringProp(group: Group, name: String) : Prop(group, name) {
     }
 
     fun valueTypeString() { valueType.set(ValueType.STRING) }
+    fun valueTypePath() { valueType.set(ValueType.PATH) }
     fun valueTypePassword() { valueType.set(ValueType.PASSWORD) }
     fun valueTypeInt() { valueType.set(ValueType.INT) }
     fun valueTypeDouble() { valueType.set(ValueType.DOUBLE) }
@@ -66,6 +70,7 @@ class StringProp(group: Group, name: String) : Prop(group, name) {
 
     private var valueSaved: (String?) -> Any? = { v ->
         when (valueType.get()) {
+            ValueType.PATH -> v?.let { v.replace("\\", "/") }
             ValueType.BOOL -> v?.toBoolean()
             ValueType.INT -> v?.toInt()
             ValueType.DOUBLE -> v?.toDouble()
@@ -116,6 +121,7 @@ class StringProp(group: Group, name: String) : Prop(group, name) {
 
     init {
         when { // name-based smart defaults
+            listOf("path", "directory", "URL").any { name.endsWith(it, true) } -> path()
             listOf("token", "password", "key").any { name.endsWith(it, true) } -> password()
             listOf("enabled", "disabled").any { name.endsWith(it, true) } -> checkbox()
         }
